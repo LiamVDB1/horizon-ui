@@ -1,0 +1,1834 @@
+=== app/layout.tsx ===
+import { Metadata } from 'next';
+import { Toaster } from 'sonner';
+
+import { ThemeProvider } from '@/components/custom/theme-provider';
+
+import './globals.css';
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://chat.vercel.ai'),
+  title: 'Next.js Chatbot Template',
+  description: 'Next.js chatbot template using the AI SDK.',
+};
+
+export const viewport = {
+  maximumScale: 1, // Disable auto-zoom on mobile Safari
+};
+
+const LIGHT_THEME_COLOR = 'hsl(0 0% 100%)';
+const DARK_THEME_COLOR = 'hsl(240deg 10% 3.92%)';
+const THEME_COLOR_SCRIPT = `\
+(function() {
+  var html = document.documentElement;
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.setAttribute('name', 'theme-color');
+    document.head.appendChild(meta);
+  }
+  function updateThemeColor() {
+    var isDark = html.classList.contains('dark');
+    meta.setAttribute('content', isDark ? '${DARK_THEME_COLOR}' : '${LIGHT_THEME_COLOR}');
+  }
+  var observer = new MutationObserver(updateThemeColor);
+  observer.observe(html, { attributes: true, attributeFilter: ['class'] });
+  updateThemeColor();
+})();`;
+
+export default async function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html
+      lang="en"
+      // `next-themes` injects an extra classname to the body element to avoid
+      // visual flicker before hydration. Hence the `suppressHydrationWarning`
+      // prop is necessary to avoid the React hydration mismatch warning.
+      // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: THEME_COLOR_SCRIPT,
+          }}
+        />
+      </head>
+      <body className="antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Toaster position="top-center" />
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
+=== app/(auth)/auth.config.ts ===
+import { NextAuthConfig } from 'next-auth';
+
+export const authConfig = {
+  pages: {
+    signIn: '/login',
+    newUser: '/',
+  },
+  providers: [
+    // added later in auth.ts since it requires bcrypt which is only compatible with Node.js
+    // while this file is also used in non-Node.js environments
+  ],
+  callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      let isLoggedIn = !!auth?.user;
+      let isOnChat = nextUrl.pathname.startsWith('/');
+      let isOnRegister = nextUrl.pathname.startsWith('/register');
+      let isOnLogin = nextUrl.pathname.startsWith('/login');
+
+      if (isLoggedIn && (isOnLogin || isOnRegister)) {
+        return Response.redirect(new URL('/', nextUrl as unknown as URL));
+      }
+
+      if (isOnRegister || isOnLogin) {
+        return true; // Always allow access to register and login pages
+      }
+
+      if (isOnChat) {
+        if (isLoggedIn) return true;
+        return false; // Redirect unauthenticated users to login page
+      }
+
+      if (isLoggedIn) {
+        return Response.redirect(new URL('/', nextUrl as unknown as URL));
+      }
+
+      return true;
+    },
+  },
+} satisfies NextAuthConfig;
+=== app/(auth)/register/page.tsx ===
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useActionState, useEffect, useState } from 'react';
+import { toast } from 'sonner';
+
+import { AuthForm } from '@/components/custom/auth-form';
+import { SubmitButton } from '@/components/custom/submit-button';
+
+import { register, RegisterActionState } from '../actions';
+
+export default function Page() {
+  const router = useRouter();
+
+  const [email, setEmail] = useState('');
+  const [isSuccessful, setIsSuccessful] = useState(false);
+
+  const [state, formAction] = useActionState<RegisterActionState, FormData>(
+    register,
+    {
+      status: 'idle',
+    }
+  );
+
+  useEffect(() => {
+    if (state.status === 'user_exists') {
+      toast.error('Account already exists');
+    } else if (state.status === 'failed') {
+      toast.error('Failed to create account');
+    } else if (state.status === 'invalid_data') {
+      toast.error('Failed validating your submission!');
+    } else if (state.status === 'success') {
+      toast.success('Account created successfully');
+      setIsSuccessful(true);
+      router.refresh();
+    }
+  }, [state, router]);
+
+  const handleSubmit = (formData: FormData) => {
+    setEmail(formData.get('email') as string);
+    formAction(formData);
+  };
+
+  return (
+    <div className="flex h-dvh w-screen items-start pt-12 md:pt-0 md:items-center justify-center bg-background">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl gap-12 flex flex-col">
+        <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
+          <h3 className="text-xl font-semibold dark:text-zinc-50">Sign Up</h3>
+          <p className="text-sm text-gray-500 dark:text-zinc-400">
+            Create an account with your email and password
+          </p>
+        </div>
+        <AuthForm action={handleSubmit} defaultEmail={email}>
+          <SubmitButton isSuccessful={isSuccessful}>Sign Up</SubmitButton>
+          <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
+            {'Already have an account? '}
+            <Link
+              href="/login"
+              className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+            >
+              Sign in
+            </Link>
+            {' instead.'}
+          </p>
+        </AuthForm>
+      </div>
+    </div>
+  );
+}
+=== app/(auth)/actions.ts ===
+"use server";
+
+import { z } from "zod";
+
+import { createUser, getUser } from "@/db/queries";
+
+import { signIn } from "./auth";
+
+const authFormSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
+export interface LoginActionState {
+  status: "idle" | "in_progress" | "success" | "failed" | "invalid_data";
+}
+
+export const login = async (
+  _: LoginActionState,
+  formData: FormData,
+): Promise<LoginActionState> => {
+  try {
+    const validatedData = authFormSchema.parse({
+      email: formData.get("email"),
+      password: formData.get("password"),
+    });
+
+    await signIn("credentials", {
+      email: validatedData.email,
+      password: validatedData.password,
+      redirect: false,
+    });
+
+    return { status: "success" };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { status: "invalid_data" };
+    }
+
+    return { status: "failed" };
+  }
+};
+
+export interface RegisterActionState {
+  status:
+    | "idle"
+    | "in_progress"
+    | "success"
+    | "failed"
+    | "user_exists"
+    | "invalid_data";
+}
+
+export const register = async (
+  _: RegisterActionState,
+  formData: FormData,
+): Promise<RegisterActionState> => {
+  try {
+    const validatedData = authFormSchema.parse({
+      email: formData.get("email"),
+      password: formData.get("password"),
+    });
+
+    let [user] = await getUser(validatedData.email);
+
+    if (user) {
+      return { status: "user_exists" } as RegisterActionState;
+    } else {
+      await createUser(validatedData.email, validatedData.password);
+      await signIn("credentials", {
+        email: validatedData.email,
+        password: validatedData.password,
+        redirect: false,
+      });
+
+      return { status: "success" };
+    }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { status: "invalid_data" };
+    }
+
+    return { status: "failed" };
+  }
+};
+=== app/(auth)/api/auth/[...nextauth]/route.ts ===
+export { GET, POST } from '@/app/(auth)/auth';
+=== app/(auth)/login/page.tsx ===
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useActionState, useEffect, useState } from 'react';
+import { toast } from 'sonner';
+
+import { AuthForm } from '@/components/custom/auth-form';
+import { SubmitButton } from '@/components/custom/submit-button';
+
+import { login, LoginActionState } from '../actions';
+
+export default function Page() {
+  const router = useRouter();
+
+  const [email, setEmail] = useState('');
+  const [isSuccessful, setIsSuccessful] = useState(false);
+
+  const [state, formAction] = useActionState<LoginActionState, FormData>(
+    login,
+    {
+      status: 'idle',
+    }
+  );
+
+  useEffect(() => {
+    if (state.status === 'failed') {
+      toast.error('Invalid credentials!');
+    } else if (state.status === 'invalid_data') {
+      toast.error('Failed validating your submission!');
+    } else if (state.status === 'success') {
+      setIsSuccessful(true);
+      router.refresh();
+    }
+  }, [state.status, router]);
+
+  const handleSubmit = (formData: FormData) => {
+    setEmail(formData.get('email') as string);
+    formAction(formData);
+  };
+
+  return (
+    <div className="flex h-dvh w-screen items-start pt-12 md:pt-0 md:items-center justify-center bg-background">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl flex flex-col gap-12">
+        <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
+          <h3 className="text-xl font-semibold dark:text-zinc-50">Sign In</h3>
+          <p className="text-sm text-gray-500 dark:text-zinc-400">
+            Use your email and password to sign in
+          </p>
+        </div>
+        <AuthForm action={handleSubmit} defaultEmail={email}>
+          <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
+          <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
+            {"Don't have an account? "}
+            <Link
+              href="/register"
+              className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
+            >
+              Sign up
+            </Link>
+            {' for free.'}
+          </p>
+        </AuthForm>
+      </div>
+    </div>
+  );
+}
+=== app/(auth)/auth.ts ===
+import { compare } from "bcrypt-ts";
+import NextAuth, { User, Session } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+
+import { getUser } from "@/db/queries";
+
+import { authConfig } from "./auth.config";
+
+interface ExtendedSession extends Session {
+  user: User;
+}
+
+export const {
+  handlers: { GET, POST },
+  auth,
+  signIn,
+  signOut,
+} = NextAuth({
+  ...authConfig,
+  providers: [
+    Credentials({
+      credentials: {},
+      async authorize({ email, password }: any) {
+        let users = await getUser(email);
+        if (users.length === 0) return null;
+        let passwordsMatch = await compare(password, users[0].password!);
+        if (passwordsMatch) return users[0] as any;
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+
+      return token;
+    },
+    async session({
+      session,
+      token,
+    }: {
+      session: ExtendedSession;
+      token: any;
+    }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+      }
+
+      return session;
+    },
+  },
+});
+=== app/(chat)/chat/[id]/page.tsx ===
+import { CoreMessage } from 'ai';
+import { cookies } from 'next/headers';
+import { notFound } from 'next/navigation';
+
+import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
+import { auth } from '@/app/(auth)/auth';
+import { Chat as PreviewChat } from '@/components/custom/chat';
+import { getChatById, getMessagesByChatId } from '@/db/queries';
+import { convertToUIMessages } from '@/lib/utils';
+
+export default async function Page(props: { params: Promise<any> }) {
+  const params = await props.params;
+  const { id } = params;
+  const chat = await getChatById({ id });
+
+  if (!chat) {
+    notFound();
+  }
+
+  const session = await auth();
+
+  if (!session || !session.user) {
+    return notFound();
+  }
+
+  if (session.user.id !== chat.userId) {
+    return notFound();
+  }
+
+  const messagesFromDb = await getMessagesByChatId({
+    id,
+  });
+
+  const cookieStore = await cookies();
+  const modelIdFromCookie = cookieStore.get('model-id')?.value;
+  const selectedModelId =
+    models.find((model) => model.id === modelIdFromCookie)?.id ||
+    DEFAULT_MODEL_NAME;
+
+  return (
+    <PreviewChat
+      id={chat.id}
+      initialMessages={convertToUIMessages(messagesFromDb)}
+      selectedModelId={selectedModelId}
+    />
+  );
+}
+=== app/(chat)/actions.ts ===
+'use server';
+
+import { CoreMessage, CoreUserMessage, generateText } from 'ai';
+import { cookies } from 'next/headers';
+
+import { customModel } from '@/ai';
+
+export async function saveModelId(model: string) {
+  const cookieStore = await cookies();
+  cookieStore.set('model-id', model);
+}
+
+export async function generateTitleFromUserMessage({
+  message,
+}: {
+  message: CoreUserMessage;
+}) {
+  const { text: title } = await generateText({
+    model: customModel('gpt-3.5-turbo'),
+    system: `\n
+    - you will generate a short title based on the first message a user begins a conversation with
+    - ensure it is not more than 80 characters long
+    - the title should be a summary of the user's message
+    - do not use quotes or colons`,
+    prompt: JSON.stringify(message),
+  });
+
+  return title;
+}
+=== app/(chat)/layout.tsx ===
+import { cookies } from 'next/headers';
+
+import { AppSidebar } from '@/components/custom/app-sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+
+import { auth } from '../(auth)/auth';
+
+export const experimental_ppr = true;
+
+export default async function Layout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [session, cookieStore] = await Promise.all([auth(), cookies()]);
+  const isCollapsed = cookieStore.get('sidebar:state')?.value !== 'true';
+
+  return (
+    <SidebarProvider defaultOpen={!isCollapsed}>
+      <AppSidebar user={session?.user} />
+      <SidebarInset>{children}</SidebarInset>
+    </SidebarProvider>
+  );
+}
+=== app/(chat)/api/vote/route.ts ===
+import { auth } from '@/app/(auth)/auth';
+import { getVotesByChatId, voteMessage } from '@/db/queries';
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const chatId = searchParams.get('chatId');
+
+  if (!chatId) {
+    return new Response('chatId is required', { status: 400 });
+  }
+
+  const session = await auth();
+
+  if (!session || !session.user || !session.user.email) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const votes = await getVotesByChatId({ id: chatId });
+
+  return Response.json(votes, { status: 200 });
+}
+
+export async function PATCH(request: Request) {
+  const {
+    chatId,
+    messageId,
+    type,
+  }: { chatId: string; messageId: string; type: 'up' | 'down' } =
+    await request.json();
+
+  if (!chatId || !messageId || !type) {
+    return new Response('messageId and type are required', { status: 400 });
+  }
+
+  const session = await auth();
+
+  if (!session || !session.user || !session.user.email) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  await voteMessage({
+    chatId,
+    messageId,
+    type: type,
+  });
+
+  return new Response('Message voted', { status: 200 });
+}
+=== app/(chat)/api/chat/route.ts ===
+import {
+  convertToCoreMessages,
+  Message,
+  StreamData,
+  streamObject,
+  streamText,
+} from 'ai';
+import { z } from 'zod';
+
+import { customModel } from '@/ai';
+import { models } from '@/ai/models';
+import { systemPrompt } from '@/ai/prompts';
+import { auth } from '@/app/(auth)/auth';
+import {
+  deleteChatById,
+  getChatById,
+  getDocumentById,
+  saveChat,
+  saveDocument,
+  saveMessages,
+  saveSuggestions,
+} from '@/db/queries';
+import { Suggestion } from '@/db/schema';
+import {
+  generateUUID,
+  getMostRecentUserMessage,
+  sanitizeResponseMessages,
+} from '@/lib/utils';
+
+import { generateTitleFromUserMessage } from '../../actions';
+
+export const maxDuration = 60;
+
+type AllowedTools =
+  | 'createDocument'
+  | 'updateDocument'
+  | 'requestSuggestions'
+  | 'getWeather';
+
+const blocksTools: AllowedTools[] = [
+  'createDocument',
+  'updateDocument',
+  'requestSuggestions',
+];
+
+const weatherTools: AllowedTools[] = ['getWeather'];
+
+const allTools: AllowedTools[] = [...blocksTools, ...weatherTools];
+
+export async function POST(request: Request) {
+  const {
+    id,
+    messages,
+    modelId,
+  }: { id: string; messages: Array<Message>; modelId: string } =
+    await request.json();
+
+  const session = await auth();
+
+  if (!session || !session.user || !session.user.id) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const model = models.find((model) => model.id === modelId);
+
+  if (!model) {
+    return new Response('Model not found', { status: 404 });
+  }
+
+  const coreMessages = convertToCoreMessages(messages);
+  const userMessage = getMostRecentUserMessage(coreMessages);
+
+  if (!userMessage) {
+    return new Response('No user message found', { status: 400 });
+  }
+
+  const chat = await getChatById({ id });
+
+  if (!chat) {
+    const title = await generateTitleFromUserMessage({ message: userMessage });
+    await saveChat({ id, userId: session.user.id, title });
+  }
+
+  await saveMessages({
+    messages: [
+      { ...userMessage, id: generateUUID(), createdAt: new Date(), chatId: id },
+    ],
+  });
+
+  const streamingData = new StreamData();
+
+  const result = await streamText({
+    model: customModel(model.apiIdentifier),
+    system: systemPrompt,
+    messages: coreMessages,
+    maxSteps: 5,
+    experimental_activeTools: allTools,
+    tools: {
+      getWeather: {
+        description: 'Get the current weather at a location',
+        parameters: z.object({
+          latitude: z.number(),
+          longitude: z.number(),
+        }),
+        execute: async ({ latitude, longitude }) => {
+          const response = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
+          );
+
+          const weatherData = await response.json();
+          return weatherData;
+        },
+      },
+      createDocument: {
+        description: 'Create a document for a writing activity',
+        parameters: z.object({
+          title: z.string(),
+        }),
+        execute: async ({ title }) => {
+          const id = generateUUID();
+          let draftText: string = '';
+
+          streamingData.append({
+            type: 'id',
+            content: id,
+          });
+
+          streamingData.append({
+            type: 'title',
+            content: title,
+          });
+
+          streamingData.append({
+            type: 'clear',
+            content: '',
+          });
+
+          const { fullStream } = await streamText({
+            model: customModel(model.apiIdentifier),
+            system:
+              'Write about the given topic. Markdown is supported. Use headings wherever appropriate.',
+            prompt: title,
+          });
+
+          for await (const delta of fullStream) {
+            const { type } = delta;
+
+            if (type === 'text-delta') {
+              const { textDelta } = delta;
+
+              draftText += textDelta;
+              streamingData.append({
+                type: 'text-delta',
+                content: textDelta,
+              });
+            }
+          }
+
+          streamingData.append({ type: 'finish', content: '' });
+
+          if (session.user && session.user.id) {
+            await saveDocument({
+              id,
+              title,
+              content: draftText,
+              userId: session.user.id,
+            });
+          }
+
+          return {
+            id,
+            title,
+            content: `A document was created and is now visible to the user.`,
+          };
+        },
+      },
+      updateDocument: {
+        description: 'Update a document with the given description',
+        parameters: z.object({
+          id: z.string().describe('The ID of the document to update'),
+          description: z
+            .string()
+            .describe('The description of changes that need to be made'),
+        }),
+        execute: async ({ id, description }) => {
+          const document = await getDocumentById({ id });
+
+          if (!document) {
+            return {
+              error: 'Document not found',
+            };
+          }
+
+          const { content: currentContent } = document;
+          let draftText: string = '';
+
+          streamingData.append({
+            type: 'clear',
+            content: document.title,
+          });
+
+          const { fullStream } = await streamText({
+            model: customModel(model.apiIdentifier),
+            system:
+              'You are a helpful writing assistant. Based on the description, please update the piece of writing.',
+            experimental_providerMetadata: {
+              openai: {
+                prediction: {
+                  type: 'content',
+                  content: currentContent,
+                },
+              },
+            },
+            messages: [
+              {
+                role: 'user',
+                content: description,
+              },
+              { role: 'user', content: currentContent },
+            ],
+          });
+
+          for await (const delta of fullStream) {
+            const { type } = delta;
+
+            if (type === 'text-delta') {
+              const { textDelta } = delta;
+
+              draftText += textDelta;
+              streamingData.append({
+                type: 'text-delta',
+                content: textDelta,
+              });
+            }
+          }
+
+          streamingData.append({ type: 'finish', content: '' });
+
+          if (session.user && session.user.id) {
+            await saveDocument({
+              id,
+              title: document.title,
+              content: draftText,
+              userId: session.user.id,
+            });
+          }
+
+          return {
+            id,
+            title: document.title,
+            content: 'The document has been updated successfully.',
+          };
+        },
+      },
+      requestSuggestions: {
+        description: 'Request suggestions for a document',
+        parameters: z.object({
+          documentId: z
+            .string()
+            .describe('The ID of the document to request edits'),
+        }),
+        execute: async ({ documentId }) => {
+          const document = await getDocumentById({ id: documentId });
+
+          if (!document || !document.content) {
+            return {
+              error: 'Document not found',
+            };
+          }
+
+          let suggestions: Array<
+            Omit<Suggestion, 'userId' | 'createdAt' | 'documentCreatedAt'>
+          > = [];
+
+          const { elementStream } = await streamObject({
+            model: customModel(model.apiIdentifier),
+            system:
+              'You are a help writing assistant. Given a piece of writing, please offer suggestions to improve the piece of writing and describe the change. It is very important for the edits to contain full sentences instead of just words. Max 5 suggestions.',
+            prompt: document.content,
+            output: 'array',
+            schema: z.object({
+              originalSentence: z.string().describe('The original sentence'),
+              suggestedSentence: z.string().describe('The suggested sentence'),
+              description: z
+                .string()
+                .describe('The description of the suggestion'),
+            }),
+          });
+
+          for await (const element of elementStream) {
+            const suggestion = {
+              originalText: element.originalSentence,
+              suggestedText: element.suggestedSentence,
+              description: element.description,
+              id: generateUUID(),
+              documentId: documentId,
+              isResolved: false,
+            };
+
+            streamingData.append({
+              type: 'suggestion',
+              content: suggestion,
+            });
+
+            suggestions.push(suggestion);
+          }
+
+          if (session.user && session.user.id) {
+            const userId = session.user.id;
+
+            await saveSuggestions({
+              suggestions: suggestions.map((suggestion) => ({
+                ...suggestion,
+                userId,
+                createdAt: new Date(),
+                documentCreatedAt: document.createdAt,
+              })),
+            });
+          }
+
+          return {
+            id: documentId,
+            title: document.title,
+            message: 'Suggestions have been added to the document',
+          };
+        },
+      },
+    },
+    onFinish: async ({ responseMessages }) => {
+      if (session.user && session.user.id) {
+        try {
+          const responseMessagesWithoutIncompleteToolCalls =
+            sanitizeResponseMessages(responseMessages);
+
+          await saveMessages({
+            messages: responseMessagesWithoutIncompleteToolCalls.map(
+              (message) => {
+                const messageId = generateUUID();
+
+                if (message.role === 'assistant') {
+                  streamingData.appendMessageAnnotation({
+                    messageIdFromServer: messageId,
+                  });
+                }
+
+                return {
+                  id: messageId,
+                  chatId: id,
+                  role: message.role,
+                  content: message.content,
+                  createdAt: new Date(),
+                };
+              }
+            ),
+          });
+        } catch (error) {
+          console.error('Failed to save chat');
+        }
+      }
+
+      streamingData.close();
+    },
+    experimental_telemetry: {
+      isEnabled: true,
+      functionId: 'stream-text',
+    },
+  });
+
+  return result.toDataStreamResponse({
+    data: streamingData,
+  });
+}
+
+export async function DELETE(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+
+  if (!id) {
+    return new Response('Not Found', { status: 404 });
+  }
+
+  const session = await auth();
+
+  if (!session || !session.user) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  try {
+    const chat = await getChatById({ id });
+
+    if (chat.userId !== session.user.id) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    await deleteChatById({ id });
+
+    return new Response('Chat deleted', { status: 200 });
+  } catch (error) {
+    return new Response('An error occurred while processing your request', {
+      status: 500,
+    });
+  }
+}
+=== app/(chat)/api/document/route.ts ===
+import { auth } from '@/app/(auth)/auth';
+import {
+  deleteDocumentsByIdAfterTimestamp,
+  getDocumentsById,
+  saveDocument,
+} from '@/db/queries';
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+
+  if (!id) {
+    return new Response('Missing id', { status: 400 });
+  }
+
+  const session = await auth();
+
+  if (!session || !session.user) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const documents = await getDocumentsById({ id });
+
+  const [document] = documents;
+
+  if (!document) {
+    return new Response('Not Found', { status: 404 });
+  }
+
+  if (document.userId !== session.user.id) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  return Response.json(documents, { status: 200 });
+}
+
+export async function POST(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+
+  if (!id) {
+    return new Response('Missing id', { status: 400 });
+  }
+
+  const session = await auth();
+
+  if (!session) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const { content, title }: { content: string; title: string } =
+    await request.json();
+
+  if (session.user && session.user.id) {
+    const document = await saveDocument({
+      id,
+      content,
+      title,
+      userId: session.user.id,
+    });
+
+    return Response.json(document, { status: 200 });
+  } else {
+    return new Response('Unauthorized', { status: 401 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+
+  const { timestamp }: { timestamp: string } = await request.json();
+
+  if (!id) {
+    return new Response('Missing id', { status: 400 });
+  }
+
+  const session = await auth();
+
+  if (!session || !session.user) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const documents = await getDocumentsById({ id });
+
+  const [document] = documents;
+
+  if (document.userId !== session.user.id) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  await deleteDocumentsByIdAfterTimestamp({
+    id,
+    timestamp: new Date(timestamp),
+  });
+
+  return new Response('Deleted', { status: 200 });
+}
+=== app/(chat)/api/history/route.ts ===
+import { auth } from "@/app/(auth)/auth";
+import { getChatsByUserId } from "@/db/queries";
+
+export async function GET() {
+  const session = await auth();
+
+  if (!session || !session.user) {
+    return Response.json("Unauthorized!", { status: 401 });
+  }
+
+  const chats = await getChatsByUserId({ id: session.user.id! });
+  return Response.json(chats);
+}
+=== app/(chat)/api/files/upload/route.ts ===
+import { put } from "@vercel/blob";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+
+import { auth } from "@/app/(auth)/auth";
+
+const FileSchema = z.object({
+  file: z
+    .instanceof(File)
+    .refine((file) => file.size <= 5 * 1024 * 1024, {
+      message: "File size should be less than 5MB",
+    })
+    .refine(
+      (file) =>
+        ["image/jpeg", "image/png", "application/pdf"].includes(file.type),
+      {
+        message: "File type should be JPEG, PNG, or PDF",
+      },
+    ),
+});
+
+export async function POST(request: Request) {
+  const session = await auth();
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (request.body === null) {
+    return new Response("Request body is empty", { status: 400 });
+  }
+
+  try {
+    const formData = await request.formData();
+    const file = formData.get("file") as File;
+
+    if (!file) {
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    }
+
+    const validatedFile = FileSchema.safeParse({ file });
+
+    if (!validatedFile.success) {
+      const errorMessage = validatedFile.error.errors
+        .map((error) => error.message)
+        .join(", ");
+
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
+    }
+
+    const filename = file.name;
+    const fileBuffer = await file.arrayBuffer();
+
+    try {
+      const data = await put(`${filename}`, fileBuffer, {
+        access: "public",
+      });
+
+      return NextResponse.json(data);
+    } catch (error) {
+      return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    }
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to process request" },
+      { status: 500 },
+    );
+  }
+}
+=== app/(chat)/api/suggestions/route.ts ===
+import { auth } from '@/app/(auth)/auth';
+import { getSuggestionsByDocumentId } from '@/db/queries';
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const documentId = searchParams.get('documentId');
+
+  if (!documentId) {
+    return new Response('Not Found', { status: 404 });
+  }
+
+  const session = await auth();
+
+  if (!session || !session.user) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const suggestions = await getSuggestionsByDocumentId({
+    documentId,
+  });
+
+  const [suggestion] = suggestions;
+
+  if (!suggestion) {
+    return Response.json([], { status: 200 });
+  }
+
+  if (suggestion.userId !== session.user.id) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  return Response.json(suggestions, { status: 200 });
+}
+=== app/(chat)/page.tsx ===
+import { cookies } from 'next/headers';
+
+import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
+import { Chat } from '@/components/custom/chat';
+import { generateUUID } from '@/lib/utils';
+
+export default async function Page() {
+  const id = generateUUID();
+
+  const cookieStore = await cookies();
+  const modelIdFromCookie = cookieStore.get('model-id')?.value;
+
+  const selectedModelId =
+    models.find((model) => model.id === modelIdFromCookie)?.id ||
+    DEFAULT_MODEL_NAME;
+
+  return (
+    <Chat
+      key={id}
+      id={id}
+      initialMessages={[]}
+      selectedModelId={selectedModelId}
+    />
+  );
+}
+=== app/globals.css ===
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 217 100% 45%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 213 100% 96%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214 32% 91%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 10% 3.9%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 5.9% 94%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 208.69 100% 24.18%;
+    --primary-foreground: 207 100% 96%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  @font-face {
+    font-family: 'geist';
+    font-style: normal;
+    font-weight: 100 900;
+    src: url(/fonts/geist.woff2) format('woff2');
+  }
+
+  @font-face {
+    font-family: 'geist-mono';
+    font-style: normal;
+    font-weight: 100 900;
+    src: url(/fonts/geist-mono.woff2) format('woff2');
+  }
+}
+
+.skeleton {
+  * {
+    pointer-events: none !important;
+  }
+
+  *[class^='text-'] {
+    color: transparent;
+    @apply rounded-md bg-foreground/20 select-none animate-pulse;
+  }
+
+  .skeleton-bg {
+    @apply bg-foreground/10;
+  }
+
+  .skeleton-div {
+    @apply bg-foreground/20 animate-pulse;
+  }
+}
+
+.ProseMirror {
+  outline: none;
+}
+
+.suggestion-highlight {
+  @apply bg-blue-200 hover:bg-blue-300 dark:hover:bg-blue-400/50 dark:text-blue-50 dark:bg-blue-500/40;
+}
+=== ai/custom-middleware.ts ===
+import { Experimental_LanguageModelV1Middleware } from 'ai';
+
+export const customMiddleware: Experimental_LanguageModelV1Middleware = {};
+=== ai/prompts.ts ===
+export const blocksPrompt = `
+  Blocks is a special user interface mode that helps users with writing, editing, and other content creation tasks. When block is open, it is on the right side of the screen, while the conversation is on the left side. When creating or updating documents, changes are reflected in real-time on the blocks and visible to the user.
+
+  This is a guide for using blocks tools: \`createDocument\` and \`updateDocument\`, which render content on a blocks beside the conversation.
+
+  **When to use \`createDocument\`:**
+  - For substantial content (>10 lines)
+  - For content users will likely save/reuse (emails, code, essays, etc.)
+  - When explicitly requested to create a document
+
+  **When NOT to use \`createDocument\`:**
+  - For informational/explanatory content
+  - For conversational responses
+  - When asked to keep it in chat
+
+  **Using \`updateDocument\`:**
+  - Default to full document rewrites for major changes
+  - Use targeted updates only for specific, isolated changes
+  - Follow user instructions for which parts to modify
+
+  Do not update document right after creating it. Wait for user feedback or request to update it.
+  `;
+
+export const regularPrompt =
+  'You are a friendly assistant! Keep your responses concise and helpful.';
+
+export const systemPrompt = `${regularPrompt}\n\n${blocksPrompt}`;
+=== ai/index.ts ===
+import { openai } from '@ai-sdk/openai';
+import { experimental_wrapLanguageModel as wrapLanguageModel } from 'ai';
+
+import { customMiddleware } from './custom-middleware';
+
+export const customModel = (apiIdentifier: string) => {
+  return wrapLanguageModel({
+    model: openai(apiIdentifier),
+    middleware: customMiddleware,
+  });
+};
+=== ai/models.ts ===
+// Define your models here.
+
+export interface Model {
+  id: string;
+  label: string;
+  apiIdentifier: string;
+  description: string;
+}
+
+export const models: Array<Model> = [
+  {
+    id: 'gpt-4o-mini',
+    label: 'GPT 4o mini',
+    apiIdentifier: 'gpt-4o-mini',
+    description: 'Small model for fast, lightweight tasks',
+  },
+  {
+    id: 'gpt-4o',
+    label: 'GPT 4o',
+    apiIdentifier: 'gpt-4o',
+    description: 'For complex, multi-step tasks',
+  },
+] as const;
+
+export const DEFAULT_MODEL_NAME: string = 'gpt-4o-mini';
+=== db/schema.ts ===
+import { InferSelectModel } from 'drizzle-orm';
+import {
+  pgTable,
+  varchar,
+  timestamp,
+  json,
+  uuid,
+  text,
+  primaryKey,
+  foreignKey,
+  boolean,
+} from 'drizzle-orm/pg-core';
+
+export const user = pgTable('User', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  email: varchar('email', { length: 64 }).notNull(),
+  password: varchar('password', { length: 64 }),
+});
+
+export type User = InferSelectModel<typeof user>;
+
+export const chat = pgTable('Chat', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  createdAt: timestamp('createdAt').notNull(),
+  title: text('title').notNull(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+});
+
+export type Chat = InferSelectModel<typeof chat>;
+
+export const message = pgTable('Message', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  chatId: uuid('chatId')
+    .notNull()
+    .references(() => chat.id),
+  role: varchar('role').notNull(),
+  content: json('content').notNull(),
+  createdAt: timestamp('createdAt').notNull(),
+});
+
+export type Message = InferSelectModel<typeof message>;
+
+export const vote = pgTable(
+  'Vote',
+  {
+    chatId: uuid('chatId')
+      .notNull()
+      .references(() => chat.id),
+    messageId: uuid('messageId')
+      .notNull()
+      .references(() => message.id),
+    isUpvoted: boolean('isUpvoted').notNull(),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.chatId, table.messageId] }),
+    };
+  }
+);
+
+export type Vote = InferSelectModel<typeof vote>;
+
+export const document = pgTable(
+  'Document',
+  {
+    id: uuid('id').notNull().defaultRandom(),
+    createdAt: timestamp('createdAt').notNull(),
+    title: text('title').notNull(),
+    content: text('content'),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.id, table.createdAt] }),
+    };
+  }
+);
+
+export type Document = InferSelectModel<typeof document>;
+
+export const suggestion = pgTable(
+  'Suggestion',
+  {
+    id: uuid('id').notNull().defaultRandom(),
+    documentId: uuid('documentId').notNull(),
+    documentCreatedAt: timestamp('documentCreatedAt').notNull(),
+    originalText: text('originalText').notNull(),
+    suggestedText: text('suggestedText').notNull(),
+    description: text('description'),
+    isResolved: boolean('isResolved').notNull().default(false),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+    createdAt: timestamp('createdAt').notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.id] }),
+    documentRef: foreignKey({
+      columns: [table.documentId, table.documentCreatedAt],
+      foreignColumns: [document.id, document.createdAt],
+    }),
+  })
+);
+
+export type Suggestion = InferSelectModel<typeof suggestion>;
+=== db/migrate.ts ===
+import { config } from "dotenv";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import postgres from "postgres";
+
+config({
+  path: ".env.local",
+});
+
+const runMigrate = async () => {
+  if (!process.env.POSTGRES_URL) {
+    throw new Error("POSTGRES_URL is not defined");
+  }
+
+  const connection = postgres(process.env.POSTGRES_URL, { max: 1 });
+  const db = drizzle(connection);
+
+  console.log("⏳ Running migrations...");
+
+  const start = Date.now();
+  await migrate(db, { migrationsFolder: "./lib/drizzle" });
+  const end = Date.now();
+
+  console.log("✅ Migrations completed in", end - start, "ms");
+  process.exit(0);
+};
+
+runMigrate().catch((err) => {
+  console.error("❌ Migration failed");
+  console.error(err);
+  process.exit(1);
+});
+=== db/queries.ts ===
+'server-only';
+
+import { genSaltSync, hashSync } from 'bcrypt-ts';
+import { and, asc, desc, eq, gt } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+
+import {
+  user,
+  chat,
+  User,
+  document,
+  Suggestion,
+  suggestion,
+  Message,
+  message,
+  vote,
+} from './schema';
+
+// Optionally, if not using email/pass login, you can
+// use the Drizzle adapter for Auth.js / NextAuth
+// https://authjs.dev/reference/adapter/drizzle
+let client = postgres(`${process.env.POSTGRES_URL!}?sslmode=require`);
+let db = drizzle(client);
+
+export async function getUser(email: string): Promise<Array<User>> {
+  try {
+    return await db.select().from(user).where(eq(user.email, email));
+  } catch (error) {
+    console.error('Failed to get user from database');
+    throw error;
+  }
+}
+
+export async function createUser(email: string, password: string) {
+  let salt = genSaltSync(10);
+  let hash = hashSync(password, salt);
+
+  try {
+    return await db.insert(user).values({ email, password: hash });
+  } catch (error) {
+    console.error('Failed to create user in database');
+    throw error;
+  }
+}
+
+export async function saveChat({
+  id,
+  userId,
+  title,
+}: {
+  id: string;
+  userId: string;
+  title: string;
+}) {
+  try {
+    return await db.insert(chat).values({
+      id,
+      createdAt: new Date(),
+      userId,
+      title,
+    });
+  } catch (error) {
+    console.error('Failed to save chat in database');
+    throw error;
+  }
+}
+
+export async function deleteChatById({ id }: { id: string }) {
+  try {
+    await db.delete(vote).where(eq(vote.chatId, id));
+    await db.delete(message).where(eq(message.chatId, id));
+
+    return await db.delete(chat).where(eq(chat.id, id));
+  } catch (error) {
+    console.error('Failed to delete chat by id from database');
+    throw error;
+  }
+}
+
+export async function getChatsByUserId({ id }: { id: string }) {
+  try {
+    return await db
+      .select()
+      .from(chat)
+      .where(eq(chat.userId, id))
+      .orderBy(desc(chat.createdAt));
+  } catch (error) {
+    console.error('Failed to get chats by user from database');
+    throw error;
+  }
+}
+
+export async function getChatById({ id }: { id: string }) {
+  try {
+    const [selectedChat] = await db.select().from(chat).where(eq(chat.id, id));
+    return selectedChat;
+  } catch (error) {
+    console.error('Failed to get chat by id from database');
+    throw error;
+  }
+}
+
+export async function saveMessages({ messages }: { messages: Array<Message> }) {
+  try {
+    return await db.insert(message).values(messages);
+  } catch (error) {
+    console.error('Failed to save messages in database', error);
+    throw error;
+  }
+}
+
+export async function getMessagesByChatId({ id }: { id: string }) {
+  try {
+    return await db
+      .select()
+      .from(message)
+      .where(eq(message.chatId, id))
+      .orderBy(asc(message.createdAt));
+  } catch (error) {
+    console.error('Failed to get messages by chat id from database', error);
+    throw error;
+  }
+}
+
+export async function voteMessage({
+  chatId,
+  messageId,
+  type,
+}: {
+  chatId: string;
+  messageId: string;
+  type: 'up' | 'down';
+}) {
+  try {
+    const [existingVote] = await db
+      .select()
+      .from(vote)
+      .where(and(eq(vote.messageId, messageId)));
+
+    if (existingVote) {
+      return await db
+        .update(vote)
+        .set({ isUpvoted: type === 'up' ? true : false })
+        .where(and(eq(vote.messageId, messageId), eq(vote.chatId, chatId)));
+    } else {
+      return await db.insert(vote).values({
+        chatId,
+        messageId,
+        isUpvoted: type === 'up' ? true : false,
+      });
+    }
+  } catch (error) {
+    console.error('Failed to upvote message in database', error);
+    throw error;
+  }
+}
+
+export async function getVotesByChatId({ id }: { id: string }) {
+  try {
+    return await db.select().from(vote).where(eq(vote.chatId, id));
+  } catch (error) {
+    console.error('Failed to get votes by chat id from database', error);
+    throw error;
+  }
+}
+
+export async function saveDocument({
+  id,
+  title,
+  content,
+  userId,
+}: {
+  id: string;
+  title: string;
+  content: string;
+  userId: string;
+}) {
+  try {
+    return await db.insert(document).values({
+      id,
+      title,
+      content,
+      userId,
+      createdAt: new Date(),
+    });
+  } catch (error) {
+    console.error('Failed to save document in database');
+    throw error;
+  }
+}
+
+export async function getDocumentsById({ id }: { id: string }) {
+  try {
+    const documents = await db
+      .select()
+      .from(document)
+      .where(eq(document.id, id))
+      .orderBy(asc(document.createdAt));
+
+    return documents;
+  } catch (error) {
+    console.error('Failed to get document by id from database');
+    throw error;
+  }
+}
+
+export async function getDocumentById({ id }: { id: string }) {
+  try {
+    const [selectedDocument] = await db
+      .select()
+      .from(document)
+      .where(eq(document.id, id))
+      .orderBy(desc(document.createdAt));
+
+    return selectedDocument;
+  } catch (error) {
+    console.error('Failed to get document by id from database');
+    throw error;
+  }
+}
+
+export async function deleteDocumentsByIdAfterTimestamp({
+  id,
+  timestamp,
+}: {
+  id: string;
+  timestamp: Date;
+}) {
+  try {
+    await db
+      .delete(suggestion)
+      .where(
+        and(
+          eq(suggestion.documentId, id),
+          gt(suggestion.documentCreatedAt, timestamp)
+        )
+      );
+
+    return await db
+      .delete(document)
+      .where(and(eq(document.id, id), gt(document.createdAt, timestamp)));
+  } catch (error) {
+    console.error(
+      'Failed to delete documents by id after timestamp from database'
+    );
+    throw error;
+  }
+}
+
+export async function saveSuggestions({
+  suggestions,
+}: {
+  suggestions: Array<Suggestion>;
+}) {
+  try {
+    return await db.insert(suggestion).values(suggestions);
+  } catch (error) {
+    console.error('Failed to save suggestions in database');
+    throw error;
+  }
+}
+
+export async function getSuggestionsByDocumentId({
+  documentId,
+}: {
+  documentId: string;
+}) {
+  try {
+    return await db
+      .select()
+      .from(suggestion)
+      .where(and(eq(suggestion.documentId, documentId)));
+  } catch (error) {
+    console.error(
+      'Failed to get suggestions by document version from database'
+    );
+    throw error;
+  }
+}
