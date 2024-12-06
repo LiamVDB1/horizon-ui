@@ -70,6 +70,13 @@ const config: Config = {
           ring: 'hsl(var(--sidebar-ring))',
         },
       },
+      backgroundImage: {
+        'JupGradient1': 'linear-gradient(to right bottom, #00B6E7, #A4D756)',
+        'JupGradient2': 'linear-gradient(to right bottom, #22CCEE, #2ED3B7)',
+        'JupGradient3': 'linear-gradient(to right bottom, #2ED3B7, #C8F284)',
+        'Sidebar' :  "url('/images/SidebarBackground.jpeg')",
+        'sidebarElements' : 'background-color : #1f2935'
+      },
     },
   },
   plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],

@@ -25,52 +25,52 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
 
   return (
-    <Sidebar className="group-data-[side=left]:border-r-0">
-      <SidebarHeader>
-        <SidebarMenu>
-          <div className="flex flex-row justify-between items-center">
-            <div
-              onClick={() => {
-                setOpenMobile(false);
-                router.push('/');
-                router.refresh();
-              }}
-              className="flex flex-row gap-3 items-center"
-            >
+      <Sidebar className="group-data-[side=left]:border-r-0">
+          <SidebarHeader>
+              <SidebarMenu>
+                  <div className="flex flex-row justify-between items-center">
+                      <div
+                          onClick={() => {
+                              setOpenMobile(false);
+                              router.push('/');
+                              router.refresh();
+                          }}
+                          className="flex flex-row gap-3 items-center"
+                      >
               <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
                 Jupiter Horizon AI
               </span>
-            </div>
-            <BetterTooltip content="New Chat" align="start">
-              <Button
-                variant="ghost"
-                className="p-2 h-fit"
-                onClick={() => {
-                  setOpenMobile(false);
-                  router.push('/');
-                  router.refresh();
-                }}
-              >
-                <PlusIcon />
-              </Button>
-            </BetterTooltip>
-          </div>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarHistory user={user} />
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter className="gap-0">
-        {user && (
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarUserNav user={user} />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-      </SidebarFooter>
-    </Sidebar>
+                      </div>
+                      <BetterTooltip content="New Chat" align="start">
+                          <Button
+                              variant="ghost"
+                              className="p-2 h-fit"
+                              onClick={() => {
+                                  setOpenMobile(false);
+                                  router.push('/');
+                                  router.refresh();
+                              }}
+                          >
+                              <PlusIcon/>
+                          </Button>
+                      </BetterTooltip>
+                  </div>
+              </SidebarMenu>
+          </SidebarHeader>
+          <SidebarContent>
+              <SidebarGroup>
+                  <SidebarHistory user={user}/>
+              </SidebarGroup>
+          </SidebarContent>
+          <SidebarFooter className="gap-0">
+              {user && (
+                  <SidebarGroup>
+                      <SidebarGroupContent>
+                          <SidebarUserNav user={user}/>
+                      </SidebarGroupContent>
+                  </SidebarGroup>
+              )}
+          </SidebarFooter>
+      </Sidebar>
   );
 }
