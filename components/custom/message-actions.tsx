@@ -97,7 +97,7 @@ export function MessageActions({
 
                     return 'Upvoted Response!';
                   },
-                  error: 'Failed to upvote response.',
+                  error: 'Failed to upvote response. Make sure you are logged in.',
                 });
               }}
             >
@@ -151,7 +151,7 @@ export function MessageActions({
 
                     return 'Downvoted Response!';
                   },
-                  error: 'Failed to downvote response.',
+                  error: 'Failed to downvote response. Make sure you are logged in.',
                 });
               }}
             >

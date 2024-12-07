@@ -11,9 +11,11 @@ export async function GET(request: Request) {
 
   const session = await auth();
 
+  /* Uncomment to require authentication to vote
   if (!session || !session.user || !session.user.email) {
     return new Response('Unauthorized', { status: 401 });
   }
+   */
 
   const votes = await getVotesByChatId({ id: chatId });
 
@@ -34,9 +36,11 @@ export async function PATCH(request: Request) {
 
   const session = await auth();
 
+  // Comment to not require authentication to vote + Adjust saving message in that case
   if (!session || !session.user || !session.user.email) {
     return new Response('Unauthorized', { status: 401 });
   }
+
 
   await voteMessage({
     chatId,

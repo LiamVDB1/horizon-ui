@@ -5,6 +5,7 @@ import {
   streamObject,
   streamText,
 } from 'ai';
+import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
 import { customModel } from '@/ai';
@@ -29,6 +30,8 @@ import {
 
 import { generateTitleFromUserMessage } from '../../actions';
 
+
+
 export const maxDuration = 60;
 
 type AllowedTools =
@@ -42,7 +45,7 @@ const blocksTools: AllowedTools[] = [
   'requestSuggestions',
 ];
 
-const allTools: AllowedTools[] = [...blocksTools];
+const allTools: AllowedTools[] = [];
 
 export async function POST(request: Request) {
   const {
@@ -54,9 +57,11 @@ export async function POST(request: Request) {
 
   const session = await auth();
 
+  /* Uncomment to only allow authenticated users
   if (!session || !session.user || !session.user.id) {
     return new Response('Unauthorized', { status: 401 });
   }
+   */
 
   const model = models.find((model) => model.id === modelId);
 
@@ -73,16 +78,18 @@ export async function POST(request: Request) {
 
   const chat = await getChatById({ id });
 
-  if (!chat) {
+  if (!chat && session && session.user && session.user.id) {
     const title = await generateTitleFromUserMessage({ message: userMessage });
     await saveChat({ id, userId: session.user.id, title });
   }
 
-  await saveMessages({
-    messages: [
-      { ...userMessage, id: generateUUID(), createdAt: new Date(), chatId: id },
-    ],
-  });
+  if (session && session.user && session.user.id){
+    await saveMessages({
+      messages: [
+        { ...userMessage, id: generateUUID(), createdAt: new Date(), chatId: id },
+      ],
+    });
+  }
 
   const streamingData = new StreamData();
 
@@ -91,8 +98,9 @@ export async function POST(request: Request) {
     system: systemPrompt,
     messages: coreMessages,
     maxSteps: 5,
-    experimental_activeTools: allTools,
-    tools: {
+    //experimental_activeTools: allTools,
+    //tools: {
+      /* Uncomment to allow Document Tools
       createDocument: {
         description: 'Create a document for a writing activity',
         parameters: z.object({
@@ -307,9 +315,10 @@ export async function POST(request: Request) {
           };
         },
       },
-    },
+       */
+    //},
     onFinish: async ({ responseMessages }) => {
-      if (session.user && session.user.id) {
+      if (session && session.user && session.user.id) {
         try {
           const responseMessagesWithoutIncompleteToolCalls =
             sanitizeResponseMessages(responseMessages);
@@ -339,7 +348,6 @@ export async function POST(request: Request) {
           console.error('Failed to save chat');
         }
       }
-
       streamingData.close();
     },
     experimental_telemetry: {

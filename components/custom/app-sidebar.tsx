@@ -29,17 +29,10 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           <SidebarHeader>
               <SidebarMenu>
                   <div className="flex flex-row justify-between items-center">
-                      <div
-                          onClick={() => {
-                              setOpenMobile(false);
-                              router.push('/');
-                              router.refresh();
-                          }}
-                          className="flex flex-row gap-3 items-center"
-                      >
+                      <div className="flex flex-row gap-3 items-center">
                           <div className={"flex flew-row gap-0 items-center"}>
-                              <HorizonIcon size={26} className={"text-primary"} />
-                              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
+                              <HorizonIcon size={26} className={""} />
+                              <span className="text-lg font-semibold px-2 rounded-md text-sidebar-shadow">
                                 Jupiter Horizon
                               </span>
                           </div>
@@ -66,13 +59,11 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               </SidebarGroup>
           </SidebarContent>
           <SidebarFooter className="gap-0">
-              {user && (
-                  <SidebarGroup>
-                      <SidebarGroupContent>
-                          <SidebarUserNav user={user}/>
-                      </SidebarGroupContent>
-                  </SidebarGroup>
-              )}
+              <SidebarGroup>
+                  <SidebarGroupContent>
+                      <SidebarUserNav user={user}/>
+                  </SidebarGroupContent>
+              </SidebarGroup>
           </SidebarFooter>
       </Sidebar>
   );

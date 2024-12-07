@@ -1,9 +1,11 @@
 'use client';
 
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { type User } from 'next-auth';
+import {signIn} from "next-auth/react";
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
@@ -57,31 +59,33 @@ const ChatItem = ({
   setOpenMobile: (open: boolean) => void;
 }) => (
   <SidebarMenuItem>
-    <SidebarMenuButton asChild isActive={isActive}>
-      <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
-        <span>{chat.title}</span>
-      </Link>
-    </SidebarMenuButton>
-    <DropdownMenu modal={true}>
-      <DropdownMenuTrigger asChild>
-        <SidebarMenuAction
-          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground mr-0.5"
-          showOnHover={!isActive}
-        >
-          <MoreHorizontalIcon />
-          <span className="sr-only">More</span>
-        </SidebarMenuAction>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent side="bottom" align="end">
-        <DropdownMenuItem
-          className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
-          onSelect={() => onDelete(chat.id)}
-        >
-          <TrashIcon />
-          <span>Delete</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="text-sidebar-shadow">
+      <SidebarMenuButton asChild isActive={isActive}>
+        <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
+          <span>{chat.title}</span>
+        </Link>
+      </SidebarMenuButton>
+      <DropdownMenu modal={true}>
+        <DropdownMenuTrigger asChild>
+          <SidebarMenuAction
+            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground mr-0.5"
+            showOnHover={!isActive}
+          >
+            <MoreHorizontalIcon />
+            <span className="sr-only">More</span>
+          </SidebarMenuAction>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="bottom" align="end">
+          <DropdownMenuItem
+            className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
+            onSelect={() => onDelete(chat.id)}
+          >
+            <TrashIcon />
+            <span>Delete</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   </SidebarMenuItem>
 );
 
@@ -133,9 +137,19 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
-          <div className="text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
-            <div>Login to save and revisit previous chats!</div>
-          </div>
+          <motion.div
+              initial={{ opacity: 0, scale: 0.80}}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.80 }}
+              transition={{ delay: 0.05}}
+          >
+            <button
+                className="w-full h-auto border border-sidebar-foreground rounded-lg p-1 text-sidebar-foreground text-sidebar-shadow flex flex-row justify-center items-center text-lg font-semibold hover:bg-sidebar-accent"
+                onClick={() => {signIn();}}
+            >
+              Login to save and revisit previous chats!
+            </button>
+          </motion.div>
         </SidebarGroupContent>
       </SidebarGroup>
     );
@@ -144,7 +158,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   if (isLoading) {
     return (
       <SidebarGroup>
-        <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 text-sidebar-shadow">
           Today
         </div>
         <SidebarGroupContent>
@@ -174,7 +188,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
-          <div className="text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
+          <div className="text-sidebar-foreground text-sidebar-shadow w-full flex flex-row justify-center items-center text-sm gap-2">
             <div>
               Your conversations will appear here once you start chatting!
             </div>

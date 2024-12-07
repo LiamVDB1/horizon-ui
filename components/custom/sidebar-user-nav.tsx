@@ -2,7 +2,7 @@
 import { ChevronUp } from 'lucide-react';
 import Image from 'next/image';
 import { type User } from 'next-auth';
-import { signOut } from 'next-auth/react';
+import { signOut, signIn } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 
 import {
@@ -18,8 +18,48 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 
-export function SidebarUserNav({ user }: { user: User }) {
+export function SidebarUserNav({ user }: { user: User | undefined }) {
   const { setTheme, theme } = useTheme();
+
+  if (!user) {
+    return (
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent bg-[--background] text-sidebar-foreground border border-white border-opacity-25 data-[state=open]:text-sidebar-accent-foreground h-10">
+                  <span className="truncate text-lg font-semibold">{"Profile"}</span>
+                  <ChevronUp className="ml-auto" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                  side="top"
+                  className="w-[--radix-popper-anchor-width]"
+              >
+                <DropdownMenuItem
+                    className="cursor-pointer"
+                    onSelect={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                >
+                  {`Toggle ${theme === 'light' ? 'dark' : 'light'} mode`}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <button
+                      className="w-full cursor-pointer"
+                      onClick={() => {
+                          signIn();
+                      }}
+                  >
+                    Login
+                  </button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+    );
+
+  }
 
   return (
     <SidebarMenu>
