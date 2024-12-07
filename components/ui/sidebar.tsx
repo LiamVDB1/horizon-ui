@@ -208,7 +208,7 @@ const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden bg-Sidebar bg-cover bg-center"
+            className="w-[--sidebar-width] p-0 text-sidebar-foreground [&>button]:hidden"
             style={
               {
                 '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
@@ -216,7 +216,8 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
-            <div className="flex h-full w-full flex-col">{children}</div>
+            <div className="absolute inset-0 bg-Sidebar bg-cover bg-center z-0 blur-ssm brightness-background contrast-background"></div>
+            <div className="relative z-10 flex h-full w-full flex-col">{children}</div>
           </SheetContent>
         </Sheet>
       );
@@ -258,9 +259,15 @@ const Sidebar = React.forwardRef<
         >
           <div
             data-sidebar="sidebar"
-            className="flex h-full w-full flex-col bg-Sidebar bg-cover bg-center group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
+            className="flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
           >
-            {children}
+            {/* Background Layer */}
+            <div className="absolute inset-0 bg-Sidebar bg-cover bg-center z-0 blur-ssm brightness-background contrast-background"></div>
+
+            {/* Content Layer */}
+            <div className="relative z-10 flex h-full w-full flex-col">
+              {children}
+            </div>
           </div>
         </div>
       </div>

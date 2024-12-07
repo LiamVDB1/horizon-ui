@@ -74,8 +74,22 @@ const config: Config = {
         'JupGradient1': 'linear-gradient(to right bottom, #00B6E7, #A4D756)',
         'JupGradient2': 'linear-gradient(to right bottom, #22CCEE, #2ED3B7)',
         'JupGradient3': 'linear-gradient(to right bottom, #2ED3B7, #C8F284)',
-        'Sidebar' :  "url('/images/SidebarBackgroundDark.jpeg')",
+        'Sidebar' :  'var(--sidebar-background)',
       },
+      blur : {
+        ssm : '2px',
+      },
+      brightness : {
+        55 : '0.55',
+        60 : '0.6',
+        65 : '0.65',
+        70 : '0.7',
+        80 : '0.8',
+        'background' : 'var(--sidebar-background-brightness)',
+      },
+      contrast : {
+        'background' : 'var(--sidebar-background-contrast)',
+      }
     },
   },
   plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
