@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type User } from 'next-auth';
 
-import { PlusIcon } from '@/components/custom/icons';
+import {HorizonIcon, PlusIcon} from '@/components/custom/icons';
 import { SidebarHistory } from '@/components/custom/sidebar-history';
 import { SidebarUserNav } from '@/components/custom/sidebar-user-nav';
 import { Button } from '@/components/ui/button';
@@ -37,9 +37,12 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                           }}
                           className="flex flex-row gap-3 items-center"
                       >
-              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
-                Jupiter Horizon AI
-              </span>
+                          <div className={"flex flew-row gap-0 items-center"}>
+                              <HorizonIcon size={26} className={"text-primary"} />
+                              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
+                                Jupiter Horizon
+                              </span>
+                          </div>
                       </div>
                       <BetterTooltip content="New Chat" align="start">
                           <Button

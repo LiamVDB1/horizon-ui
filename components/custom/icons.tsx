@@ -75,7 +75,7 @@ export const VercelIcon = ({ size = 17 }) => {
   );
 };
 
-export const HorizonIcon = ({ size = 16, className } : { size : number; className : string;}) => {
+export const HorizonIcon = ({ size = 16, className = "" } : { size : number; className : string;}) => {
   return (
       <img
           src={'/images/HorizonLogo.png'}

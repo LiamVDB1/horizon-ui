@@ -15,7 +15,7 @@ import React, {
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
-import { sanitizeUIMessages } from '@/lib/utils';
+import {cn, sanitizeUIMessages} from '@/lib/utils';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
@@ -24,15 +24,21 @@ import { Textarea } from '../ui/textarea';
 
 const suggestedActions = [
   {
-    title: 'What is the weather',
-    label: 'in San Francisco?',
-    action: 'What is the weather in San Francisco?',
+    title: '💡 What can you help me with? 🐾',
+    action: '💡 What can you help me with? 🐾',
   },
   {
-    title: 'Help me draft an essay',
-    label: 'about Silicon Valley',
-    action: 'Help me draft a short essay about Silicon Valley',
+    title: '👋 I’m new to Jupiter. How do I get started? 🔭',
+    action: '👋 I’m new to Jupiter. How do I get started? 🔭',
   },
+  {
+    title: '🌟 How do I participate in Jupiter’s DAO? 🌐',
+    action: '🌟 How do I participate in Jupiter’s DAO? 🌐',
+  },
+  {
+    title: '🚀 Key info to know for this proposal vote? 📊',
+    action: '🚀 Key info to know for this proposal vote? 📊',
+  }
 ];
 
 export function MultimodalInput({
@@ -194,40 +200,36 @@ export function MultimodalInput({
   return (
     <div className="relative w-full flex flex-col gap-4">
       {messages.length === 0 &&
-        attachments.length === 0 &&
-        uploadQueue.length === 0 && (
-          <div className="grid sm:grid-cols-2 gap-2 w-full">
-            {suggestedActions.map((suggestedAction, index) => (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ delay: 0.05 * index }}
-                key={index}
-                className={index > 1 ? 'hidden sm:block' : 'block'}
-              >
-                <Button
-                  variant="ghost"
-                  onClick={async () => {
-                    window.history.replaceState({}, '', `/chat/${chatId}`);
+          attachments.length === 0 &&
+          uploadQueue.length === 0 && (
+              <div className="grid sm:grid-cols-2 gap-2 w-full">
+                {suggestedActions.map((suggestedAction, index) => (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ delay: 0.05 * index }}
+                        key={index}
+                        className={index > 1 ? 'hidden sm:block' : 'block'}
+                    >
+                      <Button
+                          variant="ghost"
+                          onClick={async () => {
+                            window.history.replaceState({}, '', `/chat/${chatId}`);
 
-                    append({
-                      role: 'user',
-                      content: suggestedAction.action,
-                    });
-                  }}
-                  className="text-left border rounded-xl px-4 py-3.5 text-sm flex-1 gap-1 sm:flex-col w-full h-auto justify-start items-start"
-                >
-                  <span className="font-medium">{suggestedAction.title}</span>
-                  <span className="text-muted-foreground">
-                    {suggestedAction.label}
-                  </span>
-                </Button>
-              </motion.div>
-            ))}
-          </div>
-        )}
-
+                            append({
+                              role: 'user',
+                              content: suggestedAction.action,
+                            });
+                          }}
+                          className="text-left border rounded-xl px-4 py-3.5 text-sm flex-1 gap-1 sm:flex-col w-full h-auto justify-start items-start overflow-auto"
+                      >
+                        <span className="font-medium">{suggestedAction.title}</span>
+                      </Button>
+                    </motion.div>
+                ))}
+              </div>
+          )}
       <input
         type="file"
         className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"

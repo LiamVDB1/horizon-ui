@@ -9,7 +9,7 @@ import { Vote } from '@/db/schema';
 
 import { UIBlock } from './block';
 import { DocumentToolCall, DocumentToolResult } from './document';
-import { SparklesIcon } from './icons';
+import {HorizonIcon, SparklesIcon} from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
@@ -43,8 +43,8 @@ export const PreviewMessage = ({
         )}
       >
         {message.role === 'assistant' && (
-          <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
-            <SparklesIcon size={14} />
+          <div className="size-9 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
+            <HorizonIcon size={36} className ={""}/>
           </div>
         )}
 
@@ -162,8 +162,8 @@ export const ThinkingMessage = () => {
           }
         )}
       >
-        <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
-          <SparklesIcon size={14} />
+        <div className="size-9 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
+          <HorizonIcon size={36} className ={""}/>
         </div>
 
         <div className="flex flex-col gap-2 w-full">
