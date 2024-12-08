@@ -6,7 +6,7 @@ import { ThemeProvider } from '@/components/custom/theme-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://chat.vercel.ai'),
+  metadataBase: new URL('https://horizon-ui.vercel.app/'),
   title: 'Jupiter Horizon',
   description: 'Jupiter Horizon - Your gateway to navigating the Jupiverse.',
 };

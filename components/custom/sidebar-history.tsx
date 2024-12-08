@@ -59,8 +59,7 @@ const ChatItem = ({
   setOpenMobile: (open: boolean) => void;
 }) => (
   <SidebarMenuItem>
-    <div className="text-sidebar-shadow">
-      <SidebarMenuButton asChild isActive={isActive}>
+      <SidebarMenuButton asChild isActive={isActive} className="text-sidebar-shadow">
         <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
           <span>{chat.title}</span>
         </Link>
@@ -85,7 +84,6 @@ const ChatItem = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
   </SidebarMenuItem>
 );
 
@@ -144,7 +142,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
               transition={{ delay: 0.05}}
           >
             <button
-                className="w-full h-auto border border-sidebar-foreground rounded-lg p-1 text-sidebar-foreground text-sidebar-shadow flex flex-row justify-center items-center text-lg font-semibold hover:bg-sidebar-accent"
+                className="w-full h-auto border border-sidebar-foreground rounded-lg p-1 text-sidebar-foreground text-sidebar-shadow flex flex-row justify-center items-center text-lg font-semibold hover:bg-sidebar-accent hover:text-accent-foreground"
                 onClick={() => {signIn();}}
             >
               Login to save and revisit previous chats!
@@ -244,7 +242,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                   <>
                     {groupedChats.today.length > 0 && (
                       <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 text-sidebar-shadow">
+                        <div className="px-2 py-1 text-xs text-sidebar-foreground/75 text-sidebar-dates-shadow">
                           Today
                         </div>
                         {groupedChats.today.map((chat) => (
@@ -264,7 +262,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
                     {groupedChats.yesterday.length > 0 && (
                       <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6 text-sidebar-shadow">
+                        <div className="px-2 py-1 text-xs text-sidebar-foreground/75 mt-6 text-sidebar-dates-shadow">
                           Yesterday
                         </div>
                         {groupedChats.yesterday.map((chat) => (
@@ -284,7 +282,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
                     {groupedChats.lastWeek.length > 0 && (
                       <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6 text-sidebar-shadow">
+                        <div className="px-2 py-1 text-xs text-sidebar-foreground/75 mt-6 text-sidebar-dates-shadow">
                           Last 7 days
                         </div>
                         {groupedChats.lastWeek.map((chat) => (
@@ -304,7 +302,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
                     {groupedChats.lastMonth.length > 0 && (
                       <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6 text-sidebar-shadow">
+                        <div className="px-2 py-1 text-xs text-sidebar-foreground/75 mt-6 text-sidebar-dates-shadow">
                           Last 30 days
                         </div>
                         {groupedChats.lastMonth.map((chat) => (
@@ -324,7 +322,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
                     {groupedChats.older.length > 0 && (
                       <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6 text-sidebar-shadow">
+                        <div className="px-2 py-1 text-xs text-sidebar-foreground/75 mt-6 text-sidebar-dates-shadow">
                           Older
                         </div>
                         {groupedChats.older.map((chat) => (

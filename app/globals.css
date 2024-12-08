@@ -25,7 +25,7 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --background-rgb: 255, 255, 255;
+    --background-rgb: 0, 0, 0, 6;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
@@ -51,11 +51,11 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
     --sidebar-background: url('/images/SidebarBackgroundLight.jpeg');
-    --sidebar-background-brightness: 1;
-    --sidebar-background-contrast: 1;
-    --sidebar-foreground: 240 10% 3.9%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-background-brightness: 0.85;
+    --sidebar-background-contrast: 1.25;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 5.9% 94%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
@@ -63,7 +63,7 @@
   }
   .dark {
     --background: 240 10% 3.9%;
-    --background-rgb: 0, 0, 0;
+    --background-rgb: 0, 0, 0, 0.4;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
@@ -101,11 +101,15 @@
 }
 
 @layer base {
-  [class*="text-sidebar-shadow"] {
-    text-shadow: 0px 0px 1px rgb(var(--background-rgb)), 0px 0px 1px rgb(var(--background-rgb)), 0px 0px 1px rgb(var(--background-rgb)), 0px 0px 1px rgb(var(--background-rgb));
+  [class*="text-sidebar-shadow"]:not(:hover):not([data-state="open"]):not([data-active="true"]) {
+    text-shadow: 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb));
     /*text-shadow: 1px 1px 2px #000,0 0 3px #2ed3b7
      */
-
+  }
+  [class*="text-sidebar-dates-shadow"] {
+    text-shadow: 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb));
+    /*text-shadow: 1px 1px 2px #000,0 0 3px #2ed3b7
+     */
   }
   * {
     @apply border-border;
