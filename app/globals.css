@@ -51,7 +51,7 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
     --sidebar-background: url('/images/SidebarBackgroundLight.jpeg');
-    --sidebar-background-brightness: 1.15;
+    --sidebar-background-brightness: 1;
     --sidebar-background-contrast: 1;
     --sidebar-foreground: 240 10% 3.9%;
     --sidebar-primary: 240 5.9% 10%;
@@ -102,7 +102,10 @@
 
 @layer base {
   [class*="text-sidebar-shadow"] {
-    text-shadow: 0px 0px 4px rgb(var(--background-rgb));
+    text-shadow: 0px 0px 1px rgb(var(--background-rgb)), 0px 0px 1px rgb(var(--background-rgb)), 0px 0px 1px rgb(var(--background-rgb)), 0px 0px 1px rgb(var(--background-rgb));
+    /*text-shadow: 1px 1px 2px #000,0 0 3px #2ed3b7
+     */
+
   }
   * {
     @apply border-border;

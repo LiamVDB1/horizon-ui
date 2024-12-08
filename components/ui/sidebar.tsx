@@ -262,7 +262,7 @@ const Sidebar = React.forwardRef<
             className="flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
           >
             {/* Background Layer */}
-            <div className="absolute inset-0 bg-Sidebar bg-cover bg-center z-0 blur-ssm brightness-background contrast-background"></div>
+            <div className="absolute inset-0 bg-Sidebar bg-cover bg-center z-0 blur-ssm brightness-background contrast-background "></div>
 
             {/* Content Layer */}
             <div className="relative z-10 flex h-full w-full flex-col">
