@@ -89,7 +89,7 @@ const config: Config = {
       },
       contrast : {
         'background' : 'var(--sidebar-background-contrast)',
-      }
+      },
     },
   },
   plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],

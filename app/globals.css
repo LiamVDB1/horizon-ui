@@ -102,7 +102,7 @@
 
 @layer base {
   [class*="text-sidebar-shadow"]:not(:hover):not([data-state="open"]):not([data-active="true"]) {
-    text-shadow: 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb));
+    text-shadow: 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb)), 0px 0px 2px rgba(var(--background-rgb));
     /*text-shadow: 1px 1px 2px #000,0 0 3px #2ed3b7
      */
   }

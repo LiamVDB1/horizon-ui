@@ -1,16 +1,18 @@
 import {
-  convertToCoreMessages,
+  convertToCoreMessages, CoreMessage,
   Message,
   StreamData,
   streamObject,
   streamText,
+  CoreTool
 } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
 import { customModel } from '@/ai';
-import { models } from '@/ai/models';
+import {Model, models, vertex, openai, DEFAULT_MODEL_NAME, FALLBACK_MODEL_NAME} from '@/ai/models';
 import { systemPrompt } from '@/ai/prompts';
+import { getRagContext } from '@/ai/ragContext';
 import { auth } from '@/app/(auth)/auth';
 import {
   deleteChatById,
@@ -51,8 +53,7 @@ export async function POST(request: Request) {
   const {
     id,
     messages,
-    modelId,
-  }: { id: string; messages: Array<Message>; modelId: string } =
+  }: { id: string; messages: Array<Message> } =
     await request.json();
 
   const session = await auth();
@@ -63,11 +64,13 @@ export async function POST(request: Request) {
   }
    */
 
-  const model = models.find((model) => model.id === modelId);
+  const vertexModel = models.find((model) => model.id === DEFAULT_MODEL_NAME);
+  const openaiModel = models.find((model) => model.id === FALLBACK_MODEL_NAME);
 
-  if (!model) {
-    return new Response('Model not found', { status: 404 });
+  if (!vertexModel || !openaiModel) {
+      return new Response('Model not found', { status: 400 });
   }
+
 
   const coreMessages = convertToCoreMessages(messages);
   const userMessage = getMostRecentUserMessage(coreMessages);
@@ -93,9 +96,14 @@ export async function POST(request: Request) {
 
   const streamingData = new StreamData();
 
-  const result = await streamText({
-    model: customModel(model.apiIdentifier),
-    system: systemPrompt,
+  const ragContext = await getRagContext(coreMessages, userMessage);
+
+  const result = await tryWithFallback({
+    vertexModel: vertexModel,
+    openaiModel: openaiModel,
+    temperature: 0.65,
+    system: systemPrompt + "\n\n" +
+      "<documents>\n" + ragContext + "\n</documents>\n\n",
     messages: coreMessages,
     maxSteps: 5,
     //experimental_activeTools: allTools,
@@ -348,6 +356,7 @@ export async function POST(request: Request) {
           console.error('Failed to save chat');
         }
       }
+      //console.log((await result.request).body);
       streamingData.close();
     },
     experimental_telemetry: {
@@ -355,6 +364,48 @@ export async function POST(request: Request) {
       functionId: 'stream-text',
     },
   });
+
+  async function tryWithFallback(options: {
+    vertexModel: Model,
+    openaiModel: Model,
+    temperature: number,
+    system: string,
+    messages: CoreMessage[],
+    maxSteps: number,
+    experimental_activeTools?: string[] | undefined,
+    tools?: Record<string, CoreTool<any, any>> | undefined,
+    onFinish: (params: { responseMessages: any[] }) => Promise<void>,
+    experimental_telemetry: Object,
+  }) {
+    const { vertexModel, openaiModel, temperature, system, messages, maxSteps, experimental_activeTools, tools, onFinish, experimental_telemetry } = options;
+    try {
+      return await streamText({
+        model: vertex(vertexModel.apiIdentifier),
+        temperature: temperature,
+        system: system,
+        messages: messages,
+        maxSteps: maxSteps,
+        experimental_activeTools: experimental_activeTools,
+        tools: tools,
+        onFinish: onFinish,
+        experimental_telemetry: experimental_telemetry,
+
+      });
+    } catch (error) {
+      console.error("Vertex model failed, falling back to OpenAI model:", error);
+      return await streamText({
+        model: openai(openaiModel.apiIdentifier),
+        temperature: temperature,
+        system,
+        messages,
+        maxSteps,
+        experimental_activeTools: experimental_activeTools,
+        tools: tools,
+        onFinish: onFinish,
+        experimental_telemetry: experimental_telemetry,
+      });
+    }
+  }
 
   return result.toDataStreamResponse({
     data: streamingData,

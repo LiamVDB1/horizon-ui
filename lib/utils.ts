@@ -222,3 +222,42 @@ export function getMessageIdFromAnnotations(message: Message) {
   // @ts-expect-error messageIdFromServer is not defined in MessageAnnotation
   return annotation.messageIdFromServer;
 }
+
+export async function fetchWithRetry(
+    url: string,
+    options: RequestInit,
+    maxRetries = 3,
+    timeout = 10000
+): Promise<Response> {
+  const attemptFetch = async (attempt: number): Promise<Response> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout * Math.pow(1.5, attempt - 1));
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+      return response;
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
+  };
+
+  let lastError: any;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await attemptFetch(attempt);
+    } catch (error) {
+      lastError = error;
+      if (attempt === maxRetries) throw error;
+      console.log(`Fetch attempt ${attempt} failed, retrying...`);
+      await new Promise(resolve => setTimeout(resolve, 250 * Math.pow(2, attempt - 1)));
+    }
+  }
+  throw lastError; // TypeScript control flow analysis needs this
+}
