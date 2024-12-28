@@ -57,4 +57,5 @@ export const models: Array<Model> = [
 
 //export const DEFAULT_MODEL_NAME: string = 'gemini-1.5-flash-002';
 export const DEFAULT_MODEL_NAME: string = 'gemini-2.0-flash-exp';
+//export const DEFAULT_MODEL_NAME: string = 'gemini-1.5-pro-002';
 export const FALLBACK_MODEL_NAME: string = 'gpt-4o-mini';

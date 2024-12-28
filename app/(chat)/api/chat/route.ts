@@ -103,7 +103,7 @@ export async function POST(request: Request) {
     openaiModel: openaiModel,
     temperature: 0.65,
     system: systemPrompt + "\n\n" +
-      "<documents>\n" + ragContext + "\n</documents>\n\n",
+      "<retrieved-documents>\n" + ragContext + "\n</retrieved-documents>\n\n",
     messages: coreMessages,
     maxSteps: 5,
     //experimental_activeTools: allTools,
@@ -365,51 +365,87 @@ export async function POST(request: Request) {
     },
   });
 
-  async function tryWithFallback(options: {
-    vertexModel: Model,
-    openaiModel: Model,
-    temperature: number,
-    system: string,
-    messages: CoreMessage[],
-    maxSteps: number,
-    experimental_activeTools?: string[] | undefined,
-    tools?: Record<string, CoreTool<any, any>> | undefined,
-    onFinish: (params: { responseMessages: any[] }) => Promise<void>,
-    experimental_telemetry: Object,
-  }) {
-    const { vertexModel, openaiModel, temperature, system, messages, maxSteps, experimental_activeTools, tools, onFinish, experimental_telemetry } = options;
-    try {
-      return await streamText({
-        model: vertex(vertexModel.apiIdentifier),
-        temperature: temperature,
-        system: system,
-        messages: messages,
-        maxSteps: maxSteps,
-        experimental_activeTools: experimental_activeTools,
-        tools: tools,
-        onFinish: onFinish,
-        experimental_telemetry: experimental_telemetry,
-
-      });
-    } catch (error) {
-      console.error("Vertex model failed, falling back to OpenAI model:", error);
-      return await streamText({
-        model: openai(openaiModel.apiIdentifier),
-        temperature: temperature,
-        system,
-        messages,
-        maxSteps,
-        experimental_activeTools: experimental_activeTools,
-        tools: tools,
-        onFinish: onFinish,
-        experimental_telemetry: experimental_telemetry,
-      });
-    }
-  }
-
   return result.toDataStreamResponse({
     data: streamingData,
   });
+}
+
+async function tryWithFallback(options: {
+  vertexModel: Model,
+  openaiModel: Model,
+  temperature: number,
+  system: string,
+  messages: CoreMessage[],
+  maxSteps: number,
+  experimental_activeTools?: string[] | undefined,
+  tools?: Record<string, CoreTool<any, any>> | undefined,
+  onFinish: (params: { responseMessages: any[] }) => Promise<void>,
+  experimental_telemetry: Object,
+  initialTimeout?: number,
+  maxRetries?: number
+}) {
+  const {
+    vertexModel,
+    openaiModel,
+    initialTimeout = 5000,
+    maxRetries = 3,
+    ...streamOptions
+  } = options;
+
+  async function streamWithTimeout(model: any) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const controller = new AbortController();
+      let initialTimeoutId: ReturnType<typeof setTimeout> | undefined = setTimeout(() => controller.abort(), initialTimeout);
+      let chunkTimeoutId: ReturnType<typeof setTimeout> | undefined;
+
+      try {
+        return await streamText({
+          ...streamOptions,
+          model,
+          abortSignal: controller.signal,
+          onChunk: (event) => {
+            // Clear initial connection timeout on first chunk
+            if (initialTimeoutId) {
+              clearTimeout(initialTimeoutId);
+              initialTimeoutId = undefined;
+            }
+
+            // Reset chunk timeout
+            if (chunkTimeoutId) {
+              clearTimeout(chunkTimeoutId);
+            }
+            chunkTimeoutId = setTimeout(() => controller.abort() , initialTimeout * 1.5);
+          }
+        });
+      } catch (error: any) {
+        // Clean up any pending timeouts
+        if (initialTimeoutId) clearTimeout(initialTimeoutId);
+        if (chunkTimeoutId) clearTimeout(chunkTimeoutId);
+
+        if (error.name === 'AbortError') {
+          if (attempt === maxRetries) {
+            throw error;
+          }
+          console.warn(`Timeout attempt ${attempt}/${maxRetries}, retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 250 * Math.pow(2, attempt - 1)));
+          continue;
+        }
+        throw error;
+      }
+    }
+    throw new Error('Should not reach here');
+  }
+
+  try {
+    return await streamWithTimeout(vertex(vertexModel.apiIdentifier));
+  } catch (error: any) {
+    console.error(
+        error.name === 'AbortError'
+            ? "Vertex model timed out after all retries, falling back to OpenAI model"
+            : "Vertex model failed, falling back to OpenAI model:" + error
+    );
+    return await streamWithTimeout(openai(openaiModel.apiIdentifier));
+  }
 }
 
 export async function DELETE(request: Request) {
