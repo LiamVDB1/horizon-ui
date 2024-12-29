@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export const BotIcon = () => {
   return (
     <svg
@@ -77,7 +79,7 @@ export const VercelIcon = ({ size = 17 }) => {
 
 export const HorizonIcon = ({ size = 16, className = "" } : { size : number; className : string;}) => {
   return (
-      <img
+      <Image
           src={'/images/HorizonLogo.png'}
           alt={'HorizonIcon'}
           width={size}

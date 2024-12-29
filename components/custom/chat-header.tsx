@@ -8,7 +8,7 @@ import { SidebarToggle } from '@/components/custom/sidebar-toggle';
 import { Button } from '@/components/ui/button';
 import { BetterTooltip } from '@/components/ui/tooltip';
 
-import { PlusIcon, VercelIcon } from './icons';
+import { PlusIcon } from './icons';
 import { useSidebar } from '../ui/sidebar';
 
 export function ChatHeader() {

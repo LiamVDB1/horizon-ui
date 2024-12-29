@@ -1,3 +1,5 @@
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from "@vercel/analytics/react"
 import { Metadata } from 'next';
 import { Toaster } from 'sonner';
 
@@ -65,6 +67,8 @@ export default async function RootLayout({
         >
           <Toaster position="top-center" />
           {children}
+          <SpeedInsights />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
