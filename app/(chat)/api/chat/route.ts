@@ -357,13 +357,15 @@ export async function POST(request: Request) {
         }
       }
       //console.log((await result.request).body);
-      streamingData.close();
+      //streamingData.close();
     },
     experimental_telemetry: {
       isEnabled: true,
       functionId: 'stream-text',
     },
   });
+
+  return result.toDataStreamResponse();
 
   return result.toDataStreamResponse({
     data: streamingData,
@@ -397,13 +399,14 @@ async function tryWithFallback(options: {
       const controller = new AbortController();
       let initialTimeoutId: ReturnType<typeof setTimeout> | undefined = setTimeout(() => controller.abort(), initialTimeout);
       let chunkTimeoutId: ReturnType<typeof setTimeout> | undefined;
+      let wasChunkTimeout = false;  // Flag to track chunk timeouts
 
       try {
         return await streamText({
           ...streamOptions,
           model,
           abortSignal: controller.signal,
-          onChunk: (event) => {
+          onChunk: async (event) => {
             // Clear initial connection timeout on first chunk
             if (initialTimeoutId) {
               clearTimeout(initialTimeoutId);
@@ -414,7 +417,10 @@ async function tryWithFallback(options: {
             if (chunkTimeoutId) {
               clearTimeout(chunkTimeoutId);
             }
-            chunkTimeoutId = setTimeout(() => controller.abort() , initialTimeout * 1.5);
+            chunkTimeoutId = setTimeout(() => {
+              controller.abort();
+              wasChunkTimeout = true;
+            } , initialTimeout * 3);
           }
         });
       } catch (error: any) {
@@ -423,7 +429,7 @@ async function tryWithFallback(options: {
         if (chunkTimeoutId) clearTimeout(chunkTimeoutId);
 
         if (error.name === 'AbortError') {
-          if (attempt === maxRetries) {
+          if (attempt === maxRetries || wasChunkTimeout) {
             throw error;
           }
           console.warn(`Timeout attempt ${attempt}/${maxRetries}, retrying...`);

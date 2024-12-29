@@ -30,7 +30,7 @@ export async function getRagContext(messages: CoreMessage[], userMessage : CoreU
       const chatHistory = messages.slice(0, -1);
 
       const response = await fetchWithRetry(
-        'http://localhost:9001/process_query',
+        'http://89.168.40.57:9001/process_query',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -51,6 +51,7 @@ export async function getRagContext(messages: CoreMessage[], userMessage : CoreU
         'Gottten Rag Context in: ' +
           result.search_metadata?.processing_time +
           's'
+          + ' with ' + result.retrieved_documents.length + ' documents'
       );
 
       return result.retrieved_documents
