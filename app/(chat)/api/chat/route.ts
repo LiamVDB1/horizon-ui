@@ -4,7 +4,7 @@ import {
   StreamData,
   streamObject,
   streamText,
-  CoreTool
+  CoreTool, JSONValue
 } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
@@ -12,7 +12,7 @@ import { z } from 'zod';
 import { customModel } from '@/ai';
 import {Model, models, vertex, openai, DEFAULT_MODEL_NAME, FALLBACK_MODEL_NAME} from '@/ai/models';
 import { systemPrompt } from '@/ai/prompts';
-import { getRagContext } from '@/ai/ragContext';
+import { getRagContext, RetrievalDocument } from '@/ai/ragContext';
 import { auth } from '@/app/(auth)/auth';
 import {
   deleteChatById,
@@ -96,7 +96,17 @@ export async function POST(request: Request) {
 
   const streamingData = new StreamData();
 
-  const ragContext = await getRagContext(coreMessages, userMessage);
+  const ragDocuments : RetrievalDocument[] = await getRagContext(coreMessages, userMessage);
+  const ragContext = ragDocuments.map(
+      (doc, index) =>
+          `<document index="${index + 1}">
+        <content>${doc.content}</content>
+        <metadata>
+          rerank_score: ${doc.metadata.rerank_score || 'N/A'}
+        </metadata>
+      </document>`
+  )
+      .join('\n');
 
   const result = await tryWithFallback({
     vertexModel: vertexModel,
@@ -339,6 +349,7 @@ export async function POST(request: Request) {
                 if (message.role === 'assistant') {
                   streamingData.appendMessageAnnotation({
                     messageIdFromServer: messageId,
+                    ragDocuments: serializeDocuments(ragDocuments),
                   });
                 }
 
@@ -357,15 +368,13 @@ export async function POST(request: Request) {
         }
       }
       //console.log((await result.request).body);
-      //streamingData.close();
+      streamingData.close();
     },
     experimental_telemetry: {
       isEnabled: true,
       functionId: 'stream-text',
     },
   });
-
-  return result.toDataStreamResponse();
 
   return result.toDataStreamResponse({
     data: streamingData,
@@ -420,7 +429,7 @@ async function tryWithFallback(options: {
             chunkTimeoutId = setTimeout(() => {
               controller.abort();
               wasChunkTimeout = true;
-            } , initialTimeout * 3);
+            } , initialTimeout * 10);
           }
         });
       } catch (error: any) {
@@ -452,6 +461,39 @@ async function tryWithFallback(options: {
     );
     return await streamWithTimeout(openai(openaiModel.apiIdentifier));
   }
+}
+
+function serializeDocuments(documents: RetrievalDocument[]): JSONValue {
+  return documents.map(doc => {
+    // Create metadata object without undefined values
+    const metadata: { [key: string]: number } = {};
+    let url = "";
+    let source = "";
+
+    if (doc.metadata.vector_score !== undefined) {
+      metadata.vector_score = doc.metadata.vector_score;
+    }
+
+    if (doc.metadata.rerank_score !== undefined) {
+      metadata.rerank_score = doc.metadata.rerank_score;
+    }
+
+    if (doc.url !== undefined){
+      url = doc.url;
+    }
+
+    if (doc.source !== undefined) {
+      source = doc.source;
+    }
+
+    return {
+      content: doc.content,
+      metadata: metadata,
+      url: url,
+      source: source,
+
+    };
+  });
 }
 
 export async function DELETE(request: Request) {

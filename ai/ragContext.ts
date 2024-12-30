@@ -2,12 +2,14 @@ import {CoreMessage, CoreUserMessage} from 'ai';
 
 import { fetchWithRetry } from "@/lib/utils";
 
-interface RetrievalDocument {
+export interface RetrievalDocument {
     content: string;
     metadata: {
         vector_score?: number;
         rerank_score?: number;
     };
+    url?: string;
+    source?: string;
 }
 
 interface RetrievalResponse {
@@ -24,8 +26,7 @@ interface RetrievalResponse {
     error?: string;
 }
 
-export async function getRagContext(messages: CoreMessage[], userMessage : CoreUserMessage): Promise<string> {
-    let timeout;
+export async function getRagContext(messages: CoreMessage[], userMessage : CoreUserMessage): Promise<RetrievalDocument[]> {
     try {
       const chatHistory = messages.slice(0, -1);
 
@@ -42,7 +43,7 @@ export async function getRagContext(messages: CoreMessage[], userMessage : CoreU
       );
 
       if (!response) {
-        return '';
+        return [];
       }
 
       const result: RetrievalResponse = await response.json();
@@ -54,19 +55,9 @@ export async function getRagContext(messages: CoreMessage[], userMessage : CoreU
           + ' with ' + result.retrieved_documents.length + ' documents'
       );
 
-      return result.retrieved_documents
-        .map(
-          (doc, index) =>
-            `<document index="${index + 1}">
-        <content>${doc.content}</content>
-        <metadata>
-          rerank_score: ${doc.metadata.rerank_score || 'N/A'}
-        </metadata>
-      </document>`
-        )
-        .join('\n');
+      return result.retrieved_documents;
     } catch (error) {
       console.error('Error fetching RAG context:', error);
-      return '';
+      return [];
     }
 }

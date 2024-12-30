@@ -1,12 +1,15 @@
 import { Message } from 'ai';
+import {useEffect, useState} from "react";
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { useCopyToClipboard } from 'usehooks-ts';
 
+import {RetrievalDocument} from "@/ai/ragContext";
 import { Vote } from '@/db/schema';
-import { getMessageIdFromAnnotations } from '@/lib/utils';
+import { getMessageIdFromAnnotations, getSourcesFromAnnotations } from '@/lib/utils';
 
 import { CopyIcon, ThumbDownIcon, ThumbUpIcon } from './icons';
+import { SourcesViewer } from './sources-viewer';
 import { Button } from '../ui/button';
 import {
   Tooltip,
@@ -14,6 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../ui/tooltip';
+
 
 export function MessageActions({
   chatId,
@@ -159,6 +163,14 @@ export function MessageActions({
             </Button>
           </TooltipTrigger>
           <TooltipContent>Downvote Response</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <div className="hidden md:block">
+                    <SourcesViewer sources={getSourcesFromAnnotations(message)} />
+                </div>
+            </TooltipTrigger>
+            <TooltipContent>View Sources</TooltipContent>
         </Tooltip>
       </div>
     </TooltipProvider>

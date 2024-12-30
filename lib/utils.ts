@@ -261,3 +261,13 @@ export async function fetchWithRetry(
   }
   throw lastError; // TypeScript control flow analysis needs this
 }
+
+export function getSourcesFromAnnotations(message: Message) {
+  if (!message.annotations) return [];
+
+  const [annotation] = message.annotations;
+  if (!annotation) return [];
+
+  // @ts-expect-error ragDocuments is not defined in MessageAnnotation
+  return annotation.ragDocuments || [];
+}

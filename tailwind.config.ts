@@ -90,6 +90,40 @@ const config: Config = {
       contrast : {
         'background' : 'var(--sidebar-background-contrast)',
       },
+      typography: () => ({
+        xs: {
+          css: {
+            fontSize: '0.75rem', // Base font size
+            lineHeight: '1.25rem', // Base line height
+            strong : {
+              fontWeight: '600',
+            },
+            h1: {
+              fontSize: '1.25rem',
+              fontWeight: '600', // Semi-bold for h1
+              marginTop: '1rem',
+              marginBottom: '0.5rem',
+            },
+            h2: {
+              fontSize: '1rem',
+              fontWeight: '500', // Medium for h2
+              marginTop: '0.75rem',
+              marginBottom: '0.5rem',
+            },
+            h3: {
+              fontSize: '0.875rem',
+              fontWeight: '400', // Normal for h3
+              marginTop: '0.5rem',
+              marginBottom: '0.25rem',
+            },
+            p: {
+              fontWeight: '300', // Light font for paragraphs
+              marginTop: '0.5rem',
+              marginBottom: '0.5rem',
+            },
+          },
+        },
+      }),
     },
   },
   plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
