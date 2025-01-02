@@ -345,11 +345,12 @@ export async function POST(request: Request) {
             messages: responseMessagesWithoutIncompleteToolCalls.map(
               (message) => {
                 const messageId = generateUUID();
+                const serializedRagDocuments = serializeDocuments(ragDocuments);
 
                 if (message.role === 'assistant') {
                   streamingData.appendMessageAnnotation({
                     messageIdFromServer: messageId,
-                    ragDocuments: serializeDocuments(ragDocuments),
+                    ragDocuments: serializedRagDocuments,
                   });
                 }
 
@@ -358,6 +359,7 @@ export async function POST(request: Request) {
                   chatId: id,
                   role: message.role,
                   content: message.content,
+                  //ragDocument: serializedRagDocuments,
                   createdAt: new Date(),
                 };
               }
@@ -365,6 +367,15 @@ export async function POST(request: Request) {
           });
         } catch (error) {
           console.error('Failed to save chat');
+        }
+      } else {
+        const responseMessagesWithoutIncompleteToolCalls = sanitizeResponseMessages(responseMessages);
+        for (const message of responseMessagesWithoutIncompleteToolCalls) {
+          if (message.role === 'assistant') {
+            streamingData.appendMessageAnnotation({
+              ragDocuments: serializeDocuments(ragDocuments),
+            });
+          }
         }
       }
       //console.log((await result.request).body);
