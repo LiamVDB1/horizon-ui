@@ -10,13 +10,19 @@ export interface Model {
   description: string;
 }
 
-//process.env.GOOGLE_APPLICATION_CREDENTIALS = '/Users/liamvdb/PycharmProjects/Jupiter Horizon/betajupiterhorizon-946d007aad33.json';
 require('dotenv').config();
 
 export const vertex = createVertex({
   project: "betajupiterhorizon",
   //location: "us-central1",
   location: "europe-west1",
+  googleAuthOptions: {
+    credentials: {
+      client_email: process.env.GOOGLE_CLIENT_EMAIL,
+      // @ts-ignore
+      private_key: process.env.GOOGLE_PRIVATE_KEY.split(String.raw`\n`).join('\n'),
+    },
+  }
 })
 
 export const openai = createOpenAI();

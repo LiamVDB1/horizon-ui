@@ -32,6 +32,7 @@ export async function getRagContext(messages: CoreMessage[], userMessage : CoreU
 
       const response = await fetchWithRetry(
         'http://89.168.40.57:9001/process_query',
+        //'http://localhost:9001/process_query',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
