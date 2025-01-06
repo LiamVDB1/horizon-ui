@@ -504,7 +504,7 @@ function serializeDocuments(documents: RetrievalDocument[]): JSONValue {
 
     }
 
-    if (doc.timestamp !== undefined){
+    if (doc.timestamp !== undefined && doc.timestamp !== 0){
       timestamp = doc.timestamp;
     }
 

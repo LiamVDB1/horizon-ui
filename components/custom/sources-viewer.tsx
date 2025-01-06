@@ -59,7 +59,7 @@ export function SourcesViewer({ sources }: DocumentViewerProps) {
                         Go to Source
                       </a>
                     )}
-                    {source.timestamp && (<Markdown className="text-sm max-w-96 break-normal prose-xs">{'Date and time: ' + new Date(source.timestamp).toLocaleString() }</Markdown>)}
+                    {source.timestamp !== undefined && source.timestamp !== 0 && (<Markdown className="text-sm max-w-96 break-normal prose-xs">{'Date and time: ' + new Date(source.timestamp).toLocaleString() }</Markdown>)}
                   </div>
                 );
               })}
