@@ -103,6 +103,10 @@ export async function POST(request: Request) {
         <content>${doc.content}</content>
         <metadata>
           rerank_score: ${doc.metadata.rerank_score || 'N/A'}
+          username: ${doc.username || 'N/A'}
+          link: ${doc.link || 'N/A'}
+          timestamp: ${doc.timestamp || 'N/A'}
+          source: ${doc.source || 'N/A'}
         </metadata>
       </document>`
   )
@@ -478,7 +482,9 @@ function serializeDocuments(documents: RetrievalDocument[]): JSONValue {
   return documents.map(doc => {
     // Create metadata object without undefined values
     const metadata: { [key: string]: number } = {};
-    let url = "";
+    let username = "";
+    let link = "";
+    let timestamp = 0;
     let source = "";
 
     if (doc.metadata.vector_score !== undefined) {
@@ -489,18 +495,30 @@ function serializeDocuments(documents: RetrievalDocument[]): JSONValue {
       metadata.rerank_score = doc.metadata.rerank_score;
     }
 
-    if (doc.url !== undefined){
-      url = doc.url;
+    if (doc.username !== undefined){
+      username = doc.username;
+    }
+
+    if (doc.link !== undefined){
+      link = doc.link;
+
+    }
+
+    if (doc.timestamp !== undefined){
+      timestamp = doc.timestamp;
     }
 
     if (doc.source !== undefined) {
       source = doc.source;
+
     }
 
     return {
       content: doc.content,
       metadata: metadata,
-      url: url,
+      username: username,
+      link: link,
+      timestamp: timestamp,
       source: source,
 
     };
