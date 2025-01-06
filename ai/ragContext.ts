@@ -8,8 +8,10 @@ export interface RetrievalDocument {
         vector_score?: number;
         rerank_score?: number;
     };
-    url?: string;
+    username?: string;
+    link?: string;
     source?: string;
+    timestamp?: number;
 }
 
 interface RetrievalResponse {
@@ -55,6 +57,8 @@ export async function getRagContext(messages: CoreMessage[], userMessage : CoreU
           's'
           + ' with ' + result.retrieved_documents.length + ' documents'
       );
+
+      console.log(result.retrieved_documents);
 
       return result.retrieved_documents;
     } catch (error) {

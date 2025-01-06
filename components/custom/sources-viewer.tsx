@@ -45,12 +45,13 @@ export function SourcesViewer({ sources }: DocumentViewerProps) {
                     key={source.metadata.rerank_score}
                     className="mb-4 last:mb-0 pb-4 last:pb-0 border-b last:border-b-0 border-slate-200"
                   >
+                    {source.source && source.username && (<Markdown className="text-sm max-w-96 break-normal prose-xs">{'***' + source.source + ', from: ' + source.username + '***'}</Markdown>)}
                     <Markdown className="text-sm max-w-96 break-normal prose-xs">
                       {source.content}
                     </Markdown>
-                    {source.url && (
+                    {source.link && (
                       <a
-                        href={source.url}
+                        href={source.link}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-blue-500 hover:text-blue-600 hover:underline mt-2 inline-block"
@@ -58,7 +59,7 @@ export function SourcesViewer({ sources }: DocumentViewerProps) {
                         Go to Source
                       </a>
                     )}
-                    {source.source && (<Markdown className="text-sm max-w-96 break-normal prose-xs">{'***' + 'from source: ' + source.source + '***'}</Markdown>)}
+                    {source.timestamp && (<Markdown className="text-sm max-w-96 break-normal prose-xs">{'Date and time: ' + new Date(source.timestamp).toLocaleString() }</Markdown>)}
                   </div>
                 );
               })}
