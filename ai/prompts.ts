@@ -122,6 +122,7 @@ Prepend links with https://
 - Website: jup.ag
 - Welcome: welcome.jup.ag
 - Twitter: twitter.com/JupiterExchange
+- Discord: discord.gg/jup
 - Documentation: station.jup.ag/
 - Research Forum: jupresear.ch/
 - Governance/DAO: vote.jup.ag/
