@@ -112,6 +112,8 @@ export async function POST(request: Request) {
   )
       .join('\n');
 
+  console.log(systemPrompt.slice(-200));
+
   const result = await tryWithFallback({
     vertexModel: vertexModel,
     openaiModel: openaiModel,
