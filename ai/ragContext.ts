@@ -58,7 +58,7 @@ export async function getRagContext(messages: CoreMessage[], userMessage : CoreU
           + ' with ' + result.retrieved_documents.length + ' documents'
       );
 
-      console.log(result.retrieved_documents);
+      //console.log(result.retrieved_documents);
 
       return result.retrieved_documents;
     } catch (error) {
