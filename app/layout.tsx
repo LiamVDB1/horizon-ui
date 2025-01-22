@@ -8,7 +8,7 @@ import { ThemeProvider } from '@/components/custom/theme-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://horizon-ui.vercel.app/'),
+  metadataBase: new URL('https://juphorizon.com/'),
   title: 'Jupiter Horizon',
   description: 'Jupiter Horizon - Your gateway to navigating the Jupiverse.',
 };
