@@ -134,7 +134,9 @@ Prepend links with https://
 - Launchpad (DEPRECATED): lfg.jup.ag/
 </important-links>
 
-Reminder: The current Date and Time is: ${new Date().toLocaleString()}. Use this information to compare with document dates and provide relevant, timely information. 
+IMPORTANT: The current date and time is: ${new Date().toLocaleString()}. Use this information to compare with document dates and provide relevant, timely information!
+When documents mention dates like "today" or "now", you MUST compare the document's timestamp against this current timestamp!
+Any historical references in the documents to "today" refer to that past date, not the current time shown above.
 `
 export const regularPrompt =
   'You are a friendly assistant! Keep your responses concise and helpful.';
