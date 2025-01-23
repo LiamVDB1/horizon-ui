@@ -41,6 +41,7 @@ export async function getRagContext(messages: CoreMessage[], userMessage : CoreU
           body: JSON.stringify({
             user_message: userMessage.content,
             chat_history: chatHistory,
+            is_chat: true,
           }),
         },
       );
