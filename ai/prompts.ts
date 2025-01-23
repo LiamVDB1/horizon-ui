@@ -138,6 +138,7 @@ IMPORTANT: The current date and time is: ${new Date().toLocaleString()}. Use thi
 When documents mention dates like "today" or "now", you MUST compare the document's timestamp against this current timestamp!
 Any historical references in the documents to "today" refer to that past date, not the current time shown above.
 Always compare any dates found in retrieved documents against this timestamp to determine if events are in the past, present, or future.
+Reminder: Answer Questions in the Language of the Question!
 `
 export const regularPrompt =
   'You are a friendly assistant! Keep your responses concise and helpful.';
