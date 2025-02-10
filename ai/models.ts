@@ -35,10 +35,10 @@ export const models: Array<Model> = [
     description: 'For complex, multi-step tasks',
   },
   {
-    id: 'gemini-2.0-flash-exp',
+    id: 'gemini-2.0-flash-001',
     label: 'Gemini 2.0 Flash',
-    apiIdentifier: 'gemini-2.0-flash-exp',
-    description: 'Experimental, for fast, complex tasks',
+    apiIdentifier: 'gemini-2.0-flash-001',
+    description: 'For fast, complex tasks',
   },
   {
     id : 'gemini-1.5-flash-002',

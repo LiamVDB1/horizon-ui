@@ -96,6 +96,7 @@ export async function POST(request: Request) {
 
   const streamingData = new StreamData();
 
+  console.log("Retrieving Rag documents");
   const ragDocuments : RetrievalDocument[] = await getRagContext(coreMessages, userMessage);
   const ragContext = ragDocuments.map(
       (doc, index) =>
@@ -111,8 +112,6 @@ export async function POST(request: Request) {
       </document>`
   )
       .join('\n');
-
-  console.log(systemPrompt.slice(-200));
 
   const result = await tryWithFallback({
     vertexModel: vertexModel,
