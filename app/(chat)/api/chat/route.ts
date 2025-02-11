@@ -96,6 +96,7 @@ export async function POST(request: Request) {
 
   const streamingData = new StreamData();
 
+  console.log("Retrieving Rag documents");
   const ragDocuments : RetrievalDocument[] = await getRagContext(coreMessages, userMessage);
   const ragContext = ragDocuments.map(
       (doc, index) =>
@@ -504,7 +505,7 @@ function serializeDocuments(documents: RetrievalDocument[]): JSONValue {
 
     }
 
-    if (doc.timestamp !== undefined){
+    if (doc.timestamp !== undefined && doc.timestamp !== 0){
       timestamp = doc.timestamp;
     }
 

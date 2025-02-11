@@ -35,10 +35,10 @@ export const models: Array<Model> = [
     description: 'For complex, multi-step tasks',
   },
   {
-    id: 'gemini-2.0-flash-exp',
+    id: 'gemini-2.0-flash-001',
     label: 'Gemini 2.0 Flash',
-    apiIdentifier: 'gemini-2.0-flash-exp',
-    description: 'Experimental, for fast, complex tasks',
+    apiIdentifier: 'gemini-2.0-flash-001',
+    description: 'For fast, complex tasks',
   },
   {
     id : 'gemini-1.5-flash-002',
@@ -61,7 +61,7 @@ export const models: Array<Model> = [
 ] as const;
 
 
-export const DEFAULT_MODEL_NAME: string = 'gemini-1.5-flash-002';
-//export const DEFAULT_MODEL_NAME: string = 'gemini-2.0-flash-exp';
+//export const DEFAULT_MODEL_NAME: string = 'gemini-1.5-flash-002';
+export const DEFAULT_MODEL_NAME: string = 'gemini-2.0-flash-001';
 //export const DEFAULT_MODEL_NAME: string = 'gemini-1.5-pro-002';
 export const FALLBACK_MODEL_NAME: string = 'gpt-4o-mini';

@@ -41,6 +41,8 @@ export async function getRagContext(messages: CoreMessage[], userMessage : CoreU
           body: JSON.stringify({
             user_message: userMessage.content,
             chat_history: chatHistory,
+            limit: 20,
+            is_chat: true,
           }),
         },
       );
@@ -58,7 +60,7 @@ export async function getRagContext(messages: CoreMessage[], userMessage : CoreU
           + ' with ' + result.retrieved_documents.length + ' documents'
       );
 
-      console.log(result.retrieved_documents);
+      //console.log(result.retrieved_documents);
 
       return result.retrieved_documents;
     } catch (error) {
