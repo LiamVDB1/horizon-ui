@@ -13,6 +13,7 @@ import {HorizonIcon, SparklesIcon} from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
+import { CryptoPriceWidget } from './price-chart';
 import { Weather } from './weather';
 
 export const PreviewMessage = ({
@@ -54,6 +55,7 @@ export const PreviewMessage = ({
               <Markdown>{message.content as string}</Markdown>
             </div>
           )}
+        <CryptoPriceWidget ticker="jup" />
 
           {message.toolInvocations && message.toolInvocations.length > 0 && (
             <div className="flex flex-col gap-4">
