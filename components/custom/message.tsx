@@ -5,6 +5,8 @@ import cx from 'classnames';
 import { motion } from 'framer-motion';
 import { Dispatch, SetStateAction } from 'react';
 
+import { CryptoPriceWidget } from '@/components/custom/price-chart';
+import { CryptoPriceWidgetSkeleton } from '@/components/custom/price-chart-skeleton';
 import { Vote } from '@/db/schema';
 
 import { UIBlock } from './block';
@@ -13,8 +15,6 @@ import {HorizonIcon, SparklesIcon} from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
-import { CryptoPriceWidget } from './price-chart';
-import { CryptoPriceWidgetSkeleton } from "@/components/custom/price-chart-skeleton";
 import { Weather } from './weather';
 
 export const PreviewMessage = ({
