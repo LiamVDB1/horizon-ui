@@ -1,6 +1,6 @@
 //constants
-export const DAYS_TO_SHOW = 14
-export const HOUR_INTERVAL = 5
+export const DAYS_TO_SHOW = 7;
+export const HOUR_INTERVAL = 3;
 
 // Types for the API responses
 interface CoinGeckoMarketData {
