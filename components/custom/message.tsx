@@ -55,7 +55,6 @@ export const PreviewMessage = ({
               <Markdown>{message.content as string}</Markdown>
             </div>
           )}
-        <CryptoPriceWidget ticker="jup" />
 
           {message.toolInvocations && message.toolInvocations.length > 0 && (
             <div className="flex flex-col gap-4">
@@ -131,6 +130,10 @@ export const PreviewMessage = ({
                 />
               ))}
             </div>
+          )}
+
+          {message.role === 'assistant' && (
+              <CryptoPriceWidget ticker="jup" />
           )}
 
           <MessageActions

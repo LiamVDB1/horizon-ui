@@ -6,8 +6,6 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { type ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart"
-import { getCoinPriceDataCached } from "@/lib/tools/price-api"
-
 
 interface CryptoPriceData {
     symbol: string
@@ -41,7 +39,7 @@ const chartConfig = {
 
 export function CryptoPriceWidget({
                                       ticker,
-                                      className = ""
+                                      className = "",
                                   }: {
     ticker: string
     className?: string
@@ -67,10 +65,20 @@ export function CryptoPriceWidget({
             try {
                 setIsLoading(true)
                 setError(null)
-                const data = await getCoinPriceDataCached(ticker)
+                const response = await fetch(`/api/crypto-price?ticker=${ticker}`)
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`)
+                }
+                const data = await response.json()
+                if (!data) {
+                    throw new Error("No data received")
+                }
+                console.log("Received data:", data)
                 setCryptoData(data)
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to fetch price data')
+                console.error("Error loading data:", err)
+                setError(err instanceof Error ? err.message : "Failed to load data")
+                setCryptoData(null)
             } finally {
                 setIsLoading(false)
             }
@@ -101,7 +109,13 @@ export function CryptoPriceWidget({
     }
 
     if (!cryptoData) {
-        return null
+        return (
+            <Card className={`w-full max-w-[500px] ${className}`}>
+                <CardHeader>
+                    <CardTitle>No data available</CardTitle>
+                </CardHeader>
+            </Card>
+        )
     }
 
     const chartData = cryptoData.hourly_prices.map((data) => ({
