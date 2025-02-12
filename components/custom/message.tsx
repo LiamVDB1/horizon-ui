@@ -14,6 +14,7 @@ import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
 import { CryptoPriceWidget } from './price-chart';
+import { CryptoPriceWidgetSkeleton } from "@/components/custom/price-chart-skeleton";
 import { Weather } from './weather';
 
 export const PreviewMessage = ({
@@ -68,27 +69,8 @@ export const PreviewMessage = ({
                     <div key={toolCallId}>
                       {toolName === 'getWeather' ? (
                         <Weather weatherAtLocation={result} />
-                      ) : toolName === 'createDocument' ? (
-                        <DocumentToolResult
-                          type="create"
-                          result={result}
-                          block={block}
-                          setBlock={setBlock}
-                        />
-                      ) : toolName === 'updateDocument' ? (
-                        <DocumentToolResult
-                          type="update"
-                          result={result}
-                          block={block}
-                          setBlock={setBlock}
-                        />
-                      ) : toolName === 'requestSuggestions' ? (
-                        <DocumentToolResult
-                          type="request-suggestions"
-                          result={result}
-                          block={block}
-                          setBlock={setBlock}
-                        />
+                      ) : toolName === 'getTokenPrice' ? (
+                          <CryptoPriceWidget data={result} />
                       ) : (
                         <pre>{JSON.stringify(result, null, 2)}</pre>
                       )}
@@ -104,15 +86,8 @@ export const PreviewMessage = ({
                     >
                       {toolName === 'getWeather' ? (
                         <Weather />
-                      ) : toolName === 'createDocument' ? (
-                        <DocumentToolCall type="create" args={args} />
-                      ) : toolName === 'updateDocument' ? (
-                        <DocumentToolCall type="update" args={args} />
-                      ) : toolName === 'requestSuggestions' ? (
-                        <DocumentToolCall
-                          type="request-suggestions"
-                          args={args}
-                        />
+                      ) : toolName === 'getTokenPrice' ? (
+                        < CryptoPriceWidgetSkeleton />
                       ) : null}
                     </div>
                   );
@@ -130,10 +105,6 @@ export const PreviewMessage = ({
                 />
               ))}
             </div>
-          )}
-
-          {message.role === 'assistant' && (
-              <CryptoPriceWidget ticker="jup" />
           )}
 
           <MessageActions
