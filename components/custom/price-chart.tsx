@@ -68,9 +68,9 @@ export function CryptoPriceWidget({ data: cryptoData, className = "" }: CryptoPr
         <Card className={`w-full sm:max-w-[500px] ${className}`}>
             <CardHeader>
                 <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <span className="text-lg sm:text-xl">
-            {cryptoData.name} ({cryptoData.symbol})
-          </span>
+                    <span className="text-lg sm:text-xl">
+                        {cryptoData.name} ({cryptoData.symbol})
+                    </span>
                     <span className="text-xl sm:text-2xl font-bold">{formatPrice(cryptoData.current_price)}</span>
                 </CardTitle>
                 <CardDescription className="text-xs sm:text-sm mt-2">
