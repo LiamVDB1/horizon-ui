@@ -8,15 +8,15 @@ import {RetrievalDocument} from "@/ai/ragContext";
 import { Vote } from '@/db/schema';
 import { getMessageIdFromAnnotations, getSourcesFromAnnotations } from '@/lib/utils';
 
-import { CopyIcon, ThumbDownIcon, ThumbUpIcon } from './icons';
+import { CopyIcon, ThumbDownIcon, ThumbUpIcon } from '../../shared/icons';
 import { SourcesViewer } from './sources-viewer';
-import { Button } from '../ui/button';
+import { Button } from '../../ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '../ui/tooltip';
+} from '../../ui/tooltip';
 
 
 export function MessageActions({
@@ -166,9 +166,7 @@ export function MessageActions({
         </Tooltip>
         <Tooltip>
             <TooltipTrigger asChild>
-                <div className="hidden md:block">
-                    <SourcesViewer sources={getSourcesFromAnnotations(message)} />
-                </div>
+              <SourcesViewer sources={getSourcesFromAnnotations(message)} />
             </TooltipTrigger>
             <TooltipContent>View Sources</TooltipContent>
         </Tooltip>

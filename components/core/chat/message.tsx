@@ -5,17 +5,17 @@ import cx from 'classnames';
 import { motion } from 'framer-motion';
 import { Dispatch, SetStateAction } from 'react';
 
-import { CryptoPriceWidget } from '@/components/custom/price-chart';
-import { CryptoPriceWidgetSkeleton } from '@/components/custom/price-chart-skeleton';
+import { CryptoPriceWidget } from '@/components/core/visualization/price-chart';
+import { CryptoPriceWidgetSkeleton } from '@/components/core/visualization/price-chart-skeleton';
 import { Vote } from '@/db/schema';
 
-import { UIBlock } from './block';
-import { DocumentToolCall, DocumentToolResult } from './document';
-import {HorizonIcon, SparklesIcon} from './icons';
-import { Markdown } from './markdown';
+import { UIBlock } from '../blocks/block';
+import { DocumentToolCall, DocumentToolResult } from '../document/document';
+import {HorizonIcon, SparklesIcon} from '../../shared/icons';
+import { Markdown } from '@/components/core/display/markdown';
 import { MessageActions } from './message-actions';
-import { PreviewAttachment } from './preview-attachment';
-import { Weather } from './weather';
+import { PreviewAttachment } from '@/components/core/display/preview-attachment';
+import { Weather } from '../visualization/weather';
 
 export const PreviewMessage = ({
   chatId,

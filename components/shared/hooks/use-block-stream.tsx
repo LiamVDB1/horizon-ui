@@ -4,7 +4,7 @@ import { useSWRConfig } from 'swr';
 
 import { Suggestion } from '@/db/schema';
 
-import { UIBlock } from './block';
+import { UIBlock } from '../../core/blocks/block';
 
 type StreamingDelta = {
   type: 'text-delta' | 'title' | 'id' | 'suggestion' | 'clear' | 'finish';

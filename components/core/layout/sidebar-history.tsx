@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
 
-import { MoreHorizontalIcon, TrashIcon } from '@/components/custom/icons';
+import { MoreHorizontalIcon, TrashIcon } from '@/components/shared/icons';
 import {
   AlertDialog,
   AlertDialogAction,

@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 
-import { Chat } from '@/components/custom/chat';
+import { Chat } from '@/components/core/chat/chat';
 import { generateUUID } from '@/lib/utils';
 
 export default async function Page() {
