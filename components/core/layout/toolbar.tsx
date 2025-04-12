@@ -25,8 +25,8 @@ import {
   PenIcon,
   StopIcon,
   SummarizeIcon,
-} from './icons';
-import { Button } from '../ui/button';
+} from '../../shared/icons';
+import { Button } from '../../ui/button';
 
 type ToolProps = {
   type: 'final-polish' | 'request-suggestions' | 'adjust-reading-level';

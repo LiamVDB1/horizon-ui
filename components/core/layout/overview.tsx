@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
-import { HorizonIcon } from './icons';
+import { HorizonIcon } from '../../shared/icons';
 
 export const Overview = () => {
     return (

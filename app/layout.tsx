@@ -3,7 +3,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Metadata } from 'next';
 import { Toaster } from 'sonner';
 
-import { ThemeProvider } from '@/components/custom/theme-provider';
+import { ThemeProvider } from '@/components/shared/theme-provider';
 
 import './globals.css';
 

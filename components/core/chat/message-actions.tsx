@@ -8,15 +8,15 @@ import {RetrievalDocument} from "@/ai/ragContext";
 import { Vote } from '@/db/schema';
 import { getMessageIdFromAnnotations, getSourcesFromAnnotations } from '@/lib/utils';
 
-import { CopyIcon, ThumbDownIcon, ThumbUpIcon } from './icons';
+import { CopyIcon, ThumbDownIcon, ThumbUpIcon } from '../../shared/icons';
 import { SourcesViewer } from './sources-viewer';
-import { Button } from '../ui/button';
+import { Button } from '../../ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '../ui/tooltip';
+} from '../../ui/tooltip';
 
 
 export function MessageActions({

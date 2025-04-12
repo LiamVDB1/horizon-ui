@@ -1,6 +1,6 @@
 import { Attachment } from 'ai';
 
-import { LoaderIcon } from './icons';
+import { LoaderIcon } from '../../shared/icons';
 
 export const PreviewAttachment = ({
   attachment,

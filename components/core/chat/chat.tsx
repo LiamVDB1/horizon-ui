@@ -7,16 +7,16 @@ import { useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { useWindowSize } from 'usehooks-ts';
 
-import { ChatHeader } from '@/components/custom/chat-header';
-import { PreviewMessage, ThinkingMessage } from '@/components/custom/message';
-import { useScrollToBottom } from '@/components/custom/use-scroll-to-bottom';
+import { ChatHeader } from '@/components/core/chat/chat-header';
+import { PreviewMessage, ThinkingMessage } from '@/components/core/chat/message';
+import { useScrollToBottom } from '@/components/shared/hooks/use-scroll-to-bottom';
 import { Vote } from '@/db/schema';
 import { fetcher } from '@/lib/utils';
 
-import { Block, UIBlock } from './block';
-import { BlockStreamHandler } from './block-stream-handler';
+import { Block, UIBlock } from '../blocks/block';
+import { BlockStreamHandler } from '../blocks/block-stream-handler';
 import { MultimodalInput } from './multimodal-input';
-import { Overview } from './overview';
+import { Overview } from '../layout/overview';
 
 export function Chat({
   id,
