@@ -15,10 +15,10 @@ import React, {
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
+import { PreviewAttachment } from '@/components/core/display/preview-attachment';
 import {cn, sanitizeUIMessages} from '@/lib/utils';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from '../../shared/icons';
-import { PreviewAttachment } from '@/components/core/display/preview-attachment';
 import { Button } from '../../ui/button';
 import { Textarea } from '../../ui/textarea';
 

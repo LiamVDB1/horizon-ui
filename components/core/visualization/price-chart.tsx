@@ -128,12 +128,12 @@ export function CryptoPriceWidget({ data: cryptoData, className = "" }: CryptoPr
                     {cryptoData.price_change_percentage_7d >= 0 ? (
                         <>
                             Trending up by {cryptoData.price_change_percentage_7d.toFixed(2)}% in {DAYS_TO_SHOW} days
-                            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <TrendingUp className="size-3 sm:size-4" />
                         </>
                     ) : (
                         <>
                             Trending down by {Math.abs(cryptoData.price_change_percentage_7d).toFixed(2)}% in {DAYS_TO_SHOW} days
-                            <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <TrendingDown className="size-3 sm:size-4" />
                         </>
                     )}
                 </div>

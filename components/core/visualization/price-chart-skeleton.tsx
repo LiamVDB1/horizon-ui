@@ -20,7 +20,7 @@ export function CryptoPriceWidgetSkeleton({ className = "" }: { className?: stri
             <CardFooter className="flex-col items-start gap-2">
                 <div className="flex items-center gap-2">
                     <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-4" /> {/* For the trend icon */}
+                    <Skeleton className="size-4" /> {/* For the trend icon */}
                 </div>
                 <Skeleton className="h-4 w-56" />
             </CardFooter>

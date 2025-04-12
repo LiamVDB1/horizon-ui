@@ -7,7 +7,7 @@ export const Overview = () => {
     return (
         <motion.div
             key="overview"
-            className="max-w-xl mx-auto my-auto"
+            className="max-w-xl m-auto"
             initial={{ opacity: 0, scale: 0.80 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.80 }}
@@ -16,7 +16,7 @@ export const Overview = () => {
             <div className="rounded-xl p-3 flex flex-col gap-2 sm:gap-5 leading-relaxed text-center bg-JupGradient1 shadow-xl text-black max-w-xl">
                 {/* Icon */}
                 <p className="flex flex-row justify-center gap-4 items-center">
-                    <HorizonIcon size={80} className="drop-shadow-lg sm:w-24 sm:h-24" />
+                    <HorizonIcon size={80} className="drop-shadow-lg sm:size-24" />
                 </p>
                 {/* Title */}
                 <p className="text-3xl sm:text-4xl font-extrabold tracking-tight">

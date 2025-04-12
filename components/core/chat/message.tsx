@@ -5,16 +5,16 @@ import cx from 'classnames';
 import { motion } from 'framer-motion';
 import { Dispatch, SetStateAction } from 'react';
 
+import { Markdown } from '@/components/core/display/markdown';
+import { PreviewAttachment } from '@/components/core/display/preview-attachment';
 import { CryptoPriceWidget } from '@/components/core/visualization/price-chart';
 import { CryptoPriceWidgetSkeleton } from '@/components/core/visualization/price-chart-skeleton';
 import { Vote } from '@/db/schema';
 
+import { MessageActions } from './message-actions';
+import {HorizonIcon, SparklesIcon} from '../../shared/icons';
 import { UIBlock } from '../blocks/block';
 import { DocumentToolCall, DocumentToolResult } from '../document/document';
-import {HorizonIcon, SparklesIcon} from '../../shared/icons';
-import { Markdown } from '@/components/core/display/markdown';
-import { MessageActions } from './message-actions';
-import { PreviewAttachment } from '@/components/core/display/preview-attachment';
 import { Weather } from '../visualization/weather';
 
 export const PreviewMessage = ({

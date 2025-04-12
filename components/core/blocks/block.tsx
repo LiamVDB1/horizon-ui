@@ -20,17 +20,17 @@ import {
 import { Document, Suggestion, Vote } from '@/db/schema';
 import { fetcher } from '@/lib/utils';
 
+import { useScrollToBottom } from '../../shared/hooks/use-scroll-to-bottom';
+import { CopyIcon, CrossIcon, DeltaIcon, RedoIcon, UndoIcon } from '../../shared/icons';
+import { Button } from '../../ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip';
+import { PreviewMessage } from '../chat/message';
+import { MultimodalInput } from '../chat/multimodal-input';
 import { DiffView } from '../document/diffview';
 import { DocumentSkeleton } from '../document/document-skeleton';
 import { Editor } from '../document/editor';
-import { CopyIcon, CrossIcon, DeltaIcon, RedoIcon, UndoIcon } from '../../shared/icons';
-import { PreviewMessage } from '../chat/message';
-import { MultimodalInput } from '../chat/multimodal-input';
 import { Toolbar } from '../layout/toolbar';
-import { useScrollToBottom } from '../../shared/hooks/use-scroll-to-bottom';
 import { VersionFooter } from '../layout/version-footer';
-import { Button } from '../../ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip';
 export interface UIBlock {
   title: string;
   documentId: string;

@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type User } from 'next-auth';
 
-import {HorizonIcon, PlusIcon} from '@/components/shared/icons';
 import { SidebarHistory } from '@/components/core/layout/sidebar-history';
 import { SidebarUserNav } from '@/components/core/layout/sidebar-user-nav';
+import {HorizonIcon, PlusIcon} from '@/components/shared/icons';
 import { Button } from '@/components/ui/button';
 import {
   Sidebar,

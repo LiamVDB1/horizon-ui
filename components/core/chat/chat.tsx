@@ -13,9 +13,9 @@ import { useScrollToBottom } from '@/components/shared/hooks/use-scroll-to-botto
 import { Vote } from '@/db/schema';
 import { fetcher } from '@/lib/utils';
 
+import { MultimodalInput } from './multimodal-input';
 import { Block, UIBlock } from '../blocks/block';
 import { BlockStreamHandler } from '../blocks/block-stream-handler';
-import { MultimodalInput } from './multimodal-input';
 import { Overview } from '../layout/overview';
 
 export function Chat({
