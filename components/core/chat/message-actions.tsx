@@ -166,9 +166,7 @@ export function MessageActions({
         </Tooltip>
         <Tooltip>
             <TooltipTrigger asChild>
-                <div className="hidden md:block">
-                    <SourcesViewer sources={getSourcesFromAnnotations(message)} />
-                </div>
+              <SourcesViewer sources={getSourcesFromAnnotations(message)} />
             </TooltipTrigger>
             <TooltipContent>View Sources</TooltipContent>
         </Tooltip>
