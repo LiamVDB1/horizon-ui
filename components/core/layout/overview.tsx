@@ -13,23 +13,23 @@ export const Overview = () => {
             exit={{ opacity: 0, scale: 0.80 }}
             transition={{ delay: 0.2 }}
         >
-            <div className="rounded-xl p-5 flex flex-col gap-5 leading-relaxed text-center bg-JupGradient1 shadow-xl text-black max-w-xl">
+            <div className="rounded-xl p-3 flex flex-col gap-2 sm:gap-5 leading-relaxed text-center bg-JupGradient1 shadow-xl text-black max-w-xl">
                 {/* Icon */}
                 <p className="flex flex-row justify-center gap-4 items-center">
-                    <HorizonIcon size={100} className="drop-shadow-lg" />
+                    <HorizonIcon size={80} className="drop-shadow-lg sm:w-24 sm:h-24" />
                 </p>
                 {/* Title */}
-                <p className="text-4xl font-extrabold tracking-tight">
+                <p className="text-3xl sm:text-4xl font-extrabold tracking-tight">
                     Jupiter Horizon
                 </p>
 
                 {/* Subtitle */}
-                <p className="text-lg font-medium">
+                <p className="text-base sm:text-lg font-medium">
                     Your AI guide to the Jupiverse!
                 </p>
 
                 {/* Description */}
-                <p className="text-sm leading-relaxed">
+                <p className="text-xs sm:text-sm leading-relaxed">
                     I’m here to help you understand and explore all things Jupiter—trading, staking, $JUP, governance, and more.
                     Your go-to source for the knowledge and tools you need to thrive in the Jupiverse. 🪐
                 </p>
