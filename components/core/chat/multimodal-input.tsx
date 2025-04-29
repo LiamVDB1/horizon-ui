@@ -267,10 +267,10 @@ export function MultimodalInput({
         value={input}
         onChange={handleInput}
         className={cx(
-          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-xl text-base bg-muted',
-          className
-        )}
-        rows={3}
+            '!min-h-[3rem] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-xl text-base bg-muted pr-10',
+            className
+          )}
+        rows={1}
         autoFocus
         onKeyDown={(event) => {
           if (event.key === 'Enter' && !event.shiftKey) {
