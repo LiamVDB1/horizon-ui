@@ -267,7 +267,7 @@ export function MultimodalInput({
         value={input}
         onChange={handleInput}
         className={cx(
-            '!min-h-[3rem] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-xl text-base bg-muted pr-10',
+            'min-h-[3rem] md:min-h-[6rem] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-xl text-base bg-muted pr-10',
             className
           )}
         rows={1}
