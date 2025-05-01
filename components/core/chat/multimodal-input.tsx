@@ -113,11 +113,11 @@ export function MultimodalInput({
 
   useEffect(() => {
     setLocalStorageInput(input);
+    adjustHeight();
   }, [input, setLocalStorageInput]);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
-    adjustHeight();
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
