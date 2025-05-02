@@ -1,9 +1,15 @@
+'use client'; // Add this because we are using a hook
+
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 import { HorizonIcon } from '../../shared/icons';
+import { useDeveloperMode } from '../context/developer-mode-context'; // Import the hook
 
 export const Overview = () => {
+    const { isDeveloperMode } = useDeveloperMode(); // Use the hook
+    //const { isDeveloperMode, toggleDeveloperMode } = { isDeveloperMode: true, toggleDeveloperMode: () => {} };
+
     return (
         <motion.div
             key="overview"
@@ -18,21 +24,39 @@ export const Overview = () => {
                 <p className="flex flex-row justify-center gap-4 items-center">
                     <HorizonIcon size={80} className="drop-shadow-lg sm:size-24" />
                 </p>
-                {/* Title */}
-                <p className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-                    Jupiter Horizon
-                </p>
 
-                {/* Subtitle */}
-                <p className="text-base sm:text-lg font-medium">
-                    Your AI guide to the Jupiverse!
-                </p>
-
-                {/* Description */}
-                <p className="text-xs sm:text-sm leading-relaxed">
-                    I’m here to help you understand and explore all things Jupiter—trading, staking, $JUP, governance, and more.
-                    Your go-to source for the knowledge and tools you need to thrive in the Jupiverse. 🪐
-                </p>
+                {isDeveloperMode ? (
+                    <>
+                        {/* Developer Mode Title */}
+                        <p className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                            Jupiter Horizon - Developer Mode 🛠️
+                        </p>
+                        {/* Developer Mode Subtitle */}
+                        <p className="text-base sm:text-lg font-medium">
+                            Ready to explore the technical side?
+                        </p>
+                        {/* Developer Mode Description */}
+                        <p className="text-xs sm:text-sm leading-relaxed">
+                            Ask about APIs, SDKs, smart contracts, or specific code implementations within the Jupiverse. Let's build! 🚀
+                        </p>
+                    </>
+                ) : (
+                    <>
+                        {/* Original Title */}
+                        <p className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                            Jupiter Horizon
+                        </p>
+                        {/* Original Subtitle */}
+                        <p className="text-base sm:text-lg font-medium">
+                            Your AI guide to the Jupiverse!
+                        </p>
+                        {/* Original Description */}
+                        <p className="text-xs sm:text-sm leading-relaxed">
+                            I'm here to help you understand and explore all things Jupiter—trading, staking, $JUP, governance, and more.
+                            Your go-to source for the knowledge and tools you need to thrive in the Jupiverse. 🪐
+                        </p>
+                    </>
+                )}
             </div>
         </motion.div>
     );

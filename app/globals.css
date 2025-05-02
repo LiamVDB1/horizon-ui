@@ -60,6 +60,8 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --neon-green: #94E5A0;
+    --neon-green-rgb: 57, 255, 20;
   }
   .dark {
     --background: 240 10% 3.9%;
@@ -159,4 +161,24 @@
 
 .suggestion-highlight {
   @apply bg-blue-200 hover:bg-blue-300 dark:hover:bg-blue-400/50 dark:text-blue-50 dark:bg-blue-500/40;
+}
+
+/* Developer Mode - Currently Unused, for button borders */
+@layer components {
+  .developer-mode {
+    .btn,
+    button,
+    input[type='text'],
+    textarea,
+    a[href] {
+      box-shadow: 0 0 0 1px rgba(var(--neon-green-rgb), 0.3);
+      transition: box-shadow 0.2s ease-in-out;
+    }
+
+    *:focus-visible {
+      outline-color: rgba(var(--neon-green-rgb), 0.6);
+      outline-width: 1px;
+      outline-style: solid;
+    }
+  }
 }

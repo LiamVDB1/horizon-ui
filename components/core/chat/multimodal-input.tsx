@@ -16,11 +16,12 @@ import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
 import { PreviewAttachment } from '@/components/core/display/preview-attachment';
-import {cn, sanitizeUIMessages} from '@/lib/utils';
+import { cn, sanitizeUIMessages } from '@/lib/utils';
 
-import { ArrowUpIcon, PaperclipIcon, StopIcon } from '../../shared/icons';
+import { ArrowUpIcon, PaperclipIcon, StopIcon, CircuitIcon } from '../../shared/icons';
 import { Button } from '../../ui/button';
 import { Textarea } from '../../ui/textarea';
+import { useDeveloperMode } from '../context/developer-mode-context';
 
 const allowUploads = false;
 
@@ -30,8 +31,8 @@ const suggestedActions = [
     action: '💡 What can you help me with? 🐾',
   },
   {
-    title: '👋 I’m new to Jupiter. How do I get started? 🔭',
-    action: '👋 I’m new to Jupiter. How do I get started? 🔭',
+    title: '👋 I\'m new to Jupiter. How do I get started? 🔭',
+    action: '👋 I\'m new to Jupiter. How do I get started? 🔭',
   },
   {
     title: '🌟 How do I participate in Jupiter’s DAO? 🌐',
@@ -80,6 +81,8 @@ export function MultimodalInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
+  const { isDeveloperMode, toggleDeveloperMode } = useDeveloperMode();
+  //const { isDeveloperMode, toggleDeveloperMode } = { isDeveloperMode: true, toggleDeveloperMode: () => {} };
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -284,6 +287,21 @@ export function MultimodalInput({
           }
         }}
       />
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"        
+        className="rounded-full p-1.5 h-fit absolute bottom-2 right-11 m-0.5 border-2 border-zinc-700 dark:border-zinc-700"
+        style={isDeveloperMode ? { backgroundColor: '#94E5A0' } : {backgroundColor: 'transparent'}}
+        onClick={toggleDeveloperMode}
+        aria-label={isDeveloperMode ? 'Disable Developer Mode' : 'Enable Developer Mode'}
+      >
+        <CircuitIcon
+          size={20}
+          color='#94E5A0'/*{isDeveloperMode ? 'var(--neon-green)' : 'currentColor'}*/
+        />
+      </Button>
 
       {isLoading ? (
         <Button
